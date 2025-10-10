@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Đen - Spotify</title>
+        <!-- Font Awesome CDN -->
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        />
+        <link rel="stylesheet" href="css/reset.css" />
+        <link rel="stylesheet" href="css/variables.css" />
+        <link rel="stylesheet" href="css/components.css" />
+        <link rel="stylesheet" href="css/layout.css" />
+        <link rel="stylesheet" href="css/responsive.css" />
+    </head>
+    <body>
+        <div class="app-container">
+            <!-- Left Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <a href="" class="logo" title="Spotify">
+                        <i class="fab fa-spotify"></i>
+                    </a>
+                </div>
+
+                <nav class="sidebar-nav">
+                    <div class="nav-section">
+                        <h2 class="section-title">Your Library</h2>
+                        <button
+                            class="create-btn tooltip"
+                            id="createPlaylistBtn"
+                        >
+                            <span class="tooltip-text">Create Playlist</span>
+                            <i class="fas fa-plus"></i>
+                            Create
+                        </button>
+                    </div>
+
+                    <div class="nav-tabs">
+                        <!-- active -->
+                        <button class="nav-tab" id="playlistsBtn">
+                            Playlists
+                        </button>
+                        <button class="nav-tab" id="artistsBtn">Artists</button>
+                    </div>
+
+                    <div class="search-library">
+                        <div class="row">
+                            <button class="search-library-btn tooltip">
+                                <i class="fas fa-search"></i>
+                                <span class="tooltip-text">Search</span>
+                            </button>
+                            <button class="sort-btn">
+                                <span class="sort-btn-text">Recents</span>
+                                <i class="fas fa-list"></i>
+                            </button>
+                        </div>
+                        <input
+                            type="text"
+                            class="library-search-input"
+                            placeholder="Search in Your Library"
+                        />
+                        <ul class="sort-dropdown">
+                            <!-- active -->
+                            <li class="dropdown-item active">
+                                <button
+                                    class="sort-dropdown-btn sort-by-recent"
+                                >
+                                    <span>Recent</span>
+                                    <i class="fa-solid fa-check"></i>
+                                </button>
+                            </li>
+                            <li class="dropdown-item">
+                                <button
+                                    class="sort-dropdown-btn sort-by-alphabetical"
+                                >
+                                    <span>Alphabetical</span>
+                                    <i class="fa-solid fa-check"></i>
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="library-content">
+                        <!-- <div class="library-item active">
+                            <div class="item-icon liked-songs">
+                                <i class="fas fa-heart"></i>
+                            </div>
+                            <div class="item-info">
+                                <div class="item-title">Liked Songs</div>
+                                <div class="item-subtitle">
+                                    <i class="fas fa-thumbtack"></i>
+                                    Playlist • 3 songs
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="library-item">
+                            <img
+                                src="placeholder.svg?height=48&width=48"
+                                alt="Đen"
+                                class="item-image"
+                            />
+                            <div class="item-info">
+                                <div class="item-title">Đen</div>
+                                <div class="item-subtitle">Artist</div>
+                            </div>
+                        </div>
+
+                        <div class="library-item">
+                            <img
+                                src="placeholder.svg?height=48&width=48"
+                                alt="24.03"
+                                class="item-image"
+                            />
+                            <div class="item-info">
+                                <div class="item-title">24.03</div>
+                                <div class="item-subtitle">Playlist • Han</div>
+                            </div>
+                        </div> -->
+                    </div>
+                </nav>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <!-- header -->
+                <header class="main-header">
+                    <div class="search-container">
+                        <div class="search-box">
+                            <a href="">
+                                <button class="home-btn tooltip">
+                                    <i class="fas fa-home"></i>
+                                    <span class="tooltip-text bottom">
+                                        Home
+                                    </span>
+                                </button>
+                            </a>
+                            <div class="search-input-wrapper">
+                                <i class="fas fa-search search-icon"></i>
+                                <input
+                                    type="text"
+                                    placeholder="What do you want to play?"
+                                    class="search-input"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="header-actions">
+                        <div class="auth-buttons">
+                            <button class="auth-btn signup-btn">Sign up</button>
+                            <button class="auth-btn login-btn">Log in</button>
+                        </div>
+                        <div class="user-menu">
+                            <div class="user-info">
+                                <span id="user-name" class="user-name"></span>
+                                <button class="user-avatar" id="userAvatar">
+                                    <img
+                                        id="user-avatar-img"
+                                        src="placeholder.svg?height=32&width=32"
+                                        alt="User Avatar"
+                                    />
+                                </button>
+                            </div>
+                            <div class="user-dropdown" id="userDropdown">
+                                <div class="dropdown-item" id="logoutBtn">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    <span>Log out</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="content-wrapper">
+                    <!-- Today's Biggest Hits Section -->
+                    <section class="hits-section show">
+                        <div class="section-header">
+                            <h2 class="section-heading">
+                                Today's biggest hits
+                            </h2>
+                        </div>
+                        <div class="hits-grid">
+                            <div class="hit-card">
+                                <div class="hit-card-cover">
+                                    <img
+                                        src="placeholder.svg?height=160&width=160"
+                                        alt="Flowers"
+                                    />
+                                    <button class="hit-play-btn">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                </div>
+                                <div class="hit-card-info">
+                                    <h3 class="hit-card-title">Flowers</h3>
+                                    <p class="hit-card-artist">Miley Cyrus</p>
+                                </div>
+                            </div>
+
+                            <div class="hit-card">
+                                <div class="hit-card-cover">
+                                    <img
+                                        src="placeholder.svg?height=160&width=160"
+                                        alt="Lối Nhỏ"
+                                    />
+                                    <button class="hit-play-btn">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                </div>
+                                <div class="hit-card-info">
+                                    <h3 class="hit-card-title">Lối Nhỏ</h3>
+                                    <p class="hit-card-artist">Đen</p>
+                                </div>
+                            </div>
+
+                            <div class="hit-card">
+                                <div class="hit-card-cover">
+                                    <img
+                                        src="placeholder.svg?height=160&width=160"
+                                        alt="As It Was"
+                                    />
+                                    <button class="hit-play-btn">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                </div>
+                                <div class="hit-card-info">
+                                    <h3 class="hit-card-title">As It Was</h3>
+                                    <p class="hit-card-artist">Harry Styles</p>
+                                </div>
+                            </div>
+
+                            <div class="hit-card">
+                                <div class="hit-card-cover">
+                                    <img
+                                        src="placeholder.svg?height=160&width=160"
+                                        alt="Unholy"
+                                    />
+                                    <button class="hit-play-btn">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                </div>
+                                <div class="hit-card-info">
+                                    <h3 class="hit-card-title">Unholy</h3>
+                                    <p class="hit-card-artist">
+                                        Sam Smith ft. Kim Petras
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="hit-card">
+                                <div class="hit-card-cover">
+                                    <img
+                                        src="placeholder.svg?height=160&width=160"
+                                        alt="Cho Tôi Lang Thang"
+                                    />
+                                    <button class="hit-play-btn">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                </div>
+                                <div class="hit-card-info">
+                                    <h3 class="hit-card-title">
+                                        Cho Tôi Lang Thang
+                                    </h3>
+                                    <p class="hit-card-artist">Đen</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Popular Artists Section -->
+                    <section class="popular-artists-section show">
+                        <div class="section-header">
+                            <h2 class="section-heading">Popular artists</h2>
+                        </div>
+                        <div class="artists-grid">
+                            <!-- <div class="artist-card">
+                                <div class="artist-card-cover">
+                                    <img
+                                        src="placeholder.svg?height=160&width=160"
+                                        alt="Đen"
+                                    />
+                                    <button class="artist-play-btn">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                </div>
+                                <div class="artist-card-info">
+                                    <h3 class="artist-card-name">Đen</h3>
+                                    <p class="artist-card-type">Artist</p>
+                                </div>
+                            </div>
+
+                            <div class="artist-card">
+                                <div class="artist-card-cover">
+                                    <img
+                                        src="placeholder.svg?height=160&width=160"
+                                        alt="Sơn Tùng M-TP"
+                                    />
+                                    <button class="artist-play-btn">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                </div>
+                                <div class="artist-card-info">
+                                    <h3 class="artist-card-name">
+                                        Sơn Tùng M-TP
+                                    </h3>
+                                    <p class="artist-card-type">Artist</p>
+                                </div>
+                            </div>
+
+                            <div class="artist-card">
+                                <div class="artist-card-cover">
+                                    <img
+                                        src="placeholder.svg?height=160&width=160"
+                                        alt="Harry Styles"
+                                    />
+                                    <button class="artist-play-btn">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                </div>
+                                <div class="artist-card-info">
+                                    <h3 class="artist-card-name">
+                                        Harry Styles
+                                    </h3>
+                                    <p class="artist-card-type">Artist</p>
+                                </div>
+                            </div>
+
+                            <div class="artist-card">
+                                <div class="artist-card-cover">
+                                    <img
+                                        src="placeholder.svg?height=160&width=160"
+                                        alt="Trúc Nhân"
+                                    />
+                                    <button class="artist-play-btn">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                </div>
+                                <div class="artist-card-info">
+                                    <h3 class="artist-card-name">Trúc Nhân</h3>
+                                    <p class="artist-card-type">Artist</p>
+                                </div>
+                            </div> -->
+                        </div>
+                    </section>
+
+                    <!-- Artist Hero Section -->
+                    <section class="artist-section">
+                        <section class="artist-hero hero">
+                            <div class="hero-background">
+                                <img
+                                    src="placeholder.svg"
+                                    alt="Artist background"
+                                    class="hero-image"
+                                />
+                                <div class="hero-overlay"></div>
+                            </div>
+                            <div class="hero-content">
+                                <div class="verified-badge">
+                                    <i
+                                        class="verified-icon fas fa-check-circle"
+                                    ></i>
+                                    <span class="verified-text">
+                                        Verified Artist
+                                    </span>
+                                </div>
+                                <h1 class="artist-name">Đen</h1>
+                                <p class="monthly-listeners">
+                                    1,021,833 monthly listeners
+                                </p>
+                            </div>
+                        </section>
+
+                        <!-- Artist Controls -->
+                        <section class="artist-controls">
+                            <button class="play-btn-large">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <button class="follow-btn">Follow</button>
+                        </section>
+
+                        <!-- Popular Tracks -->
+                        <section class="popular-section">
+                            <h2 class="section-title">Popular</h2>
+                            <div class="track-list">
+                                <!-- <div class="track-item">
+                                    <div class="track-number">1</div>
+                                    <div class="track-image">
+                                        <img
+                                            src="placeholder.svg?height=40&width=40"
+                                            alt="Cho Tôi Lang Thang"
+                                        />
+                                    </div>
+                                    <div class="track-info">
+                                        <div class="track-name">
+                                            Cho Tôi Lang Thang
+                                        </div>
+                                    </div>
+                                    <div class="track-plays">27,498,341</div>
+                                    <div class="track-duration">4:18</div>
+                                    <button class="track-menu-btn">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </button>
+                                </div>
+
+                                <div class="track-item playing">
+                                    <div class="track-number">
+                                        <i
+                                            class="fas fa-volume-up playing-icon"
+                                        ></i>
+                                    </div>
+                                    <div class="track-image">
+                                        <img
+                                            src="placeholder.svg?height=40&width=40"
+                                            alt="Lối Nhỏ"
+                                        />
+                                    </div>
+                                    <div class="track-info">
+                                        <div class="track-name playing-text">
+                                            Lối Nhỏ
+                                        </div>
+                                    </div>
+                                    <div class="track-plays">45,686,866</div>
+                                    <div class="track-duration">4:12</div>
+                                    <button class="track-menu-btn">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </button>
+                                </div>
+
+                                <div class="track-item">
+                                    <div class="track-number">3</div>
+                                    <div class="track-image">
+                                        <img
+                                            src="placeholder.svg?height=40&width=40"
+                                            alt="Cho Minh Em"
+                                        />
+                                    </div>
+                                    <div class="track-info">
+                                        <div class="track-name">
+                                            Cho Minh Em
+                                        </div>
+                                    </div>
+                                    <div class="track-plays">20,039,024</div>
+                                    <div class="track-duration">3:26</div>
+                                    <button class="track-menu-btn">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </button>
+                                </div> -->
+                            </div>
+                        </section>
+                    </section>
+
+                    <!-- Playlist section -->
+                    <section class="playlist-section">
+                        <section class="playlist-hero hero">
+                            <div class="hero-background">
+                                <div class="hero-overlay"></div>
+                            </div>
+
+                            <!-- playlist image -->
+                            <div class="hero-left">
+                                <button class="edit-image-btn">
+                                    <img
+                                        src="placeholder.svg"
+                                        alt=""
+                                        class="playlist-image"
+                                    />
+                                </button>
+                            </div>
+                            <div class="hero-right">
+                                <span class="playlist-status">
+                                    Public Playlist
+                                </span>
+                                <button class="edit-details-btn">
+                                    <h1 class="playlist-heading">
+                                        My Playlist #1
+                                    </h1>
+                                </button>
+                                <span class="playlist-stats">
+                                    0 song, 0 min 0 sec
+                                </span>
+                            </div>
+                        </section>
+
+                        <!-- Playlist Controls -->
+                        <section class="playlist-controls">
+                            <button class="play-btn-large">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <button class="follow-btn">Follow</button>
+                        </section>
+
+                        <!-- Playlist Tracks -->
+                        <section class="playlist-track-section">
+                            <h2 class="section-title">Playlist songs</h2>
+                            <div class="track-list">
+                                <!-- <div class="track-item">
+                                    <div class="track-number">1</div>
+                                    <div class="track-image">
+                                        <img
+                                            src="placeholder.svg?height=40&width=40"
+                                            alt="Cho Tôi Lang Thang"
+                                        />
+                                    </div>
+                                    <div class="track-info">
+                                        <div class="track-name">
+                                            Cho Tôi Lang Thang
+                                        </div>
+                                    </div>
+                                    <div class="track-plays">27,498,341</div>
+                                    <div class="track-duration">4:18</div>
+                                    <button class="track-menu-btn">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </button>
+                                </div>
+
+                                <div class="track-item playing">
+                                    <div class="track-number">
+                                        <i
+                                            class="fas fa-volume-up playing-icon"
+                                        ></i>
+                                    </div>
+                                    <div class="track-image">
+                                        <img
+                                            src="placeholder.svg?height=40&width=40"
+                                            alt="Lối Nhỏ"
+                                        />
+                                    </div>
+                                    <div class="track-info">
+                                        <div class="track-name playing-text">
+                                            Lối Nhỏ
+                                        </div>
+                                    </div>
+                                    <div class="track-plays">45,686,866</div>
+                                    <div class="track-duration">4:12</div>
+                                    <button class="track-menu-btn">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </button>
+                                </div>
+
+                                <div class="track-item">
+                                    <div class="track-number">3</div>
+                                    <div class="track-image">
+                                        <img
+                                            src="placeholder.svg?height=40&width=40"
+                                            alt="Cho Minh Em"
+                                        />
+                                    </div>
+                                    <div class="track-info">
+                                        <div class="track-name">
+                                            Cho Minh Em
+                                        </div>
+                                    </div>
+                                    <div class="track-plays">20,039,024</div>
+                                    <div class="track-duration">3:26</div>
+                                    <button class="track-menu-btn">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </button>
+                                </div> -->
+                            </div>
+                        </section>
+                    </section>
+                </div>
+            </main>
+
+            <!-- Bottom Player -->
+            <footer class="player">
+                <div class="player-left">
+                    <img
+                        src="placeholder.svg?height=56&width=56"
+                        alt="Current track"
+                        class="player-image"
+                    />
+                    <div class="player-info">
+                        <div class="player-title">Song Title</div>
+                        <div class="player-artist">Artist</div>
+                    </div>
+                    <div class="tooltip">
+                        <button class="add-btn">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                        <span class="tooltip-text">Add to Liked Songs</span>
+                    </div>
+                </div>
+
+                <div class="player-center">
+                    <div class="player-controls">
+                        <!-- active -->
+                        <button class="shuffle-btn control-btn tooltip">
+                            <i class="fas fa-random"></i>
+                            <span class="tooltip-text">Shuffle</span>
+                        </button>
+                        <button class="previous-btn control-btn tooltip">
+                            <i class="fas fa-step-backward"></i>
+                            <span class="tooltip-text">Previous</span>
+                        </button>
+                        <button
+                            class="play-pause-btn control-btn play-btn tooltip"
+                        >
+                            <i class="fas fa-play"></i>
+                            <span class="tooltip-text">Play/Pause</span>
+                        </button>
+                        <button class="next-btn control-btn tooltip">
+                            <i class="fas fa-step-forward"></i>
+                            <span class="tooltip-text">Next</span>
+                        </button>
+                        <button class="repeat-btn control-btn tooltip">
+                            <i class="fas fa-redo"></i>
+                            <span class="tooltip-text">Repeat</span>
+                        </button>
+                    </div>
+                    <!-- progress bar -->
+                    <div class="progress-bar-container">
+                        <span class="elapsed-time time">0:00</span>
+                        <!-- progress-bar-wrapper is to add padding -->
+                        <div class="progress-bar-wrapper">
+                            <div class="progress-bar">
+                                <div class="inner-progress-bar">
+                                    <div class="progress-slider"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <span class="total-duration time">0:00</span>
+                    </div>
+                </div>
+
+                <div class="player-right">
+                    <button class="control-btn tooltip">
+                        <i class="fas fa-microphone"></i>
+                        <span class="tooltip-text">Microphone</span>
+                    </button>
+                    <div class="volume-container">
+                        <button class="control-btn tooltip">
+                            <i class="fas fa-volume-high"></i>
+                            <span class="tooltip-text">Volume</span>
+                        </button>
+                        <!-- volume bar -->
+                        <div class="volume-bar-container">
+                            <div class="volume-bar-wrapper">
+                                <div class="volume-bar">
+                                    <div class="inner-volume-bar">
+                                        <div class="volume-slider"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="control-btn tooltip">
+                        <i class="fas fa-expand"></i>
+                        <span class="tooltip-text">Fullscreen</span>
+                    </button>
+                </div>
+            </footer>
+            <audio src="" class="audio"></audio>
+        </div>
+
+        <!-- Playlist modal -->
+        <div class="playlist-modal-overlay modal-overlay" id="playlistModal">
+            <div class="modal-container">
+                <div class="modal-header">
+                    <h1 class="modal-title">Edit details</h1>
+                    <button class="modal-close-btn" id="playlistModalClose">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="playlist-error-message">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Playlist name is required!</span>
+                    </div>
+                    <div class="modal-content">
+                        <button class="upload-btn">
+                            <i class="fa-solid fa-music"></i>
+                            <span>Choose photo</span>
+                        </button>
+                        <div class="modal-info">
+                            <form action="" class="playlist-form">
+                                <input
+                                    class="playlist-form-input invalid"
+                                    name="playlist-name"
+                                    type="text"
+                                    placeholder="Add a name"
+                                />
+                                <textarea
+                                    class="playlist-form-input"
+                                    name="playlist-desc"
+                                    placeholder="Add an optional description"
+                                ></textarea>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="row">
+                        <button class="save-btn">Save</button>
+                    </div>
+                    <p class="disclaimer-text">
+                        By proceeding, you agree to give Spotify access to the
+                        image you choose to upload. Please make sure you have
+                        the right to upload the image.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auth Modal -->
+        <div class="modal-overlay" id="authModal">
+            <div class="modal-container">
+                <button class="modal-close" id="modalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+
+                <div class="modal-content">
+                    <div class="modal-logo">
+                        <i class="fab fa-spotify"></i>
+                    </div>
+
+                    <!-- Sign Up Form -->
+                    <div class="auth-form" id="signupForm">
+                        <h1 class="modal-heading">
+                            Sign up to start listening
+                        </h1>
+
+                        <form class="auth-form-content" novalidate>
+                            <div class="form-group">
+                                <input
+                                    type="email"
+                                    placeholder="Email address"
+                                    class="form-input"
+                                    id="signupEmail"
+                                />
+                                <div class="error-message">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span class="email-error-message">
+                                        Please enter a valid email address
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="password-wrapper">
+                                    <input
+                                        type="password"
+                                        placeholder="Password"
+                                        class="form-input"
+                                        id="signupPassword"
+                                    />
+                                    <button
+                                        class="show-password-btn"
+                                        type="button"
+                                    >
+                                        <!-- <i
+                                            class="eye-icon fa-regular fa-eye"
+                                        ></i> -->
+                                        <i
+                                            class="eye-icon fa-regular fa-eye-slash"
+                                        ></i>
+                                    </button>
+                                </div>
+                                <div class="error-message">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span class="password-error-message">
+                                        Password must be at least 8 characters
+                                    </span>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="auth-submit-btn">
+                                Sign Up
+                            </button>
+                        </form>
+
+                        <div class="auth-switch">
+                            <span>Already have an account?</span>
+                            <button class="auth-link" id="showLogin">
+                                Log in here
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Login Form -->
+                    <div class="auth-form" id="loginForm" style="display: none">
+                        <h1 class="modal-heading">Log in to Spotify</h1>
+
+                        <form class="auth-form-content" novalidate>
+                            <div class="form-group">
+                                <input
+                                    type="email"
+                                    placeholder="Email address"
+                                    class="form-input"
+                                    id="loginEmail"
+                                />
+                                <div class="error-message">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span class="email-error-message">
+                                        Please enter a valid email address
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="password-wrapper">
+                                    <input
+                                        type="password"
+                                        placeholder="Password"
+                                        class="form-input"
+                                        id="loginPassword"
+                                    />
+                                    <button
+                                        class="show-password-btn"
+                                        type="button"
+                                    >
+                                        <!-- <i
+                                            class="eye-icon fa-regular fa-eye"
+                                        ></i> -->
+                                        <i
+                                            class="eye-icon fa-regular fa-eye-slash"
+                                        ></i>
+                                    </button>
+                                </div>
+
+                                <div class="error-message">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span class="password-error-message">
+                                        Please enter your password
+                                    </span>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="auth-submit-btn">
+                                Log In
+                            </button>
+                        </form>
+
+                        <div class="auth-switch">
+                            <span>Don't have an account? </span>
+                            <button class="auth-link" id="showSignup">
+                                Sign up here
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- playlist modal -->
+
+        <!-- Toast -->
+        <div class="toast">
+            <p class="toast-content">Log in successfully</p>
+        </div>
+
+        <!-- DOMPurify library -->
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.7/purify.min.js"
+            integrity="sha512-78KH17QLT5e55GJqP76vutp1D2iAoy06WcYBXB6iBCsmO6wWzx0Qdg8EDpm8mKXv68BcvHOyeeP4wxAL0twJGQ=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"
+        ></script>
+        <script src="main.js" type="module"></script>
+    </body>
+</html>

@@ -8,19 +8,16 @@ class HttpRequest {
             const accessToken = localStorage.getItem("accessToken");
 
             if (accessToken) {
-                options = {
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                    },
-                };
+                options.headers = options.headers || {};
+                options.headers.Authorization = `Bearer ${accessToken}`;
             }
 
             const res = await fetch(`${this.baseUrl}${path}`, {
                 ...options,
                 method,
                 headers: {
-                    ...options.headers,
                     "Content-Type": "application/json",
+                    ...options.headers,
                 },
                 body: data === null ? null : JSON.stringify(data),
             });
@@ -28,9 +25,6 @@ class HttpRequest {
             const response = await res.json();
 
             if (!res.ok) {
-                // console.log(res);
-                // console.log(response);
-
                 const error = new Error(`HTTP status code: ${res.status}`);
                 error.status = res.status;
                 error.statusText = res.statusText;
@@ -44,8 +38,6 @@ class HttpRequest {
                 error.isNetworkError = true;
             }
 
-            // console.error("HTTP Request Error:", error);
-            // console.dir(error);
             throw error;
         }
     }

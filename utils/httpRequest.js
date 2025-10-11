@@ -12,17 +12,42 @@ class HttpRequest {
                 options.headers.Authorization = `Bearer ${accessToken}`;
             }
 
-            const res = await fetch(`${this.baseUrl}${path}`, {
+            // detect if data is FormData for file uploads
+            const isFormData = data instanceof FormData;
+            const config = {
                 ...options,
                 method,
-                headers: {
+            };
+
+            // for FormData: Let browser handle body and multipart headers
+            if (isFormData) {
+                config.body = data;
+                config.headers = {
+                    ...options.headers, // don't set Content-Type
+                };
+            }
+            // default JSON handling
+            else {
+                config.headers = {
                     "Content-Type": "application/json",
                     ...options.headers,
-                },
-                body: data === null ? null : JSON.stringify(data),
-            });
+                };
+                config.body = data === null ? null : JSON.stringify(data);
+            }
+            const res = await fetch(`${this.baseUrl}${path}`, config);
 
-            const response = await res.json();
+            // Try to parse as JSON if response is JSON; handle non-JSON for uploads if needed
+            let response;
+            const contentType = res.headers.get("content-type");
+
+            // for JSON response
+            if (contentType && contentType.includes("application/json")) {
+                response = await res.json();
+            }
+            // for non-JSON response
+            else {
+                response = await res.text();
+            }
 
             if (!res.ok) {
                 const error = new Error(`HTTP status code: ${res.status}`);

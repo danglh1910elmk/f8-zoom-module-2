@@ -796,95 +796,6 @@ document.addEventListener("DOMContentLoaded", async (e) => {
         contextMenu.classList.add("show");
     }
 
-    async function handleUnfollowPlaylist(playlistId) {
-        try {
-            const playlist = await getPlaylistById(playlistId);
-            // không cho follow/unfollow playlist của mình (giống spotify)
-            if (playlist.is_owner) {
-                // show toast
-                console.error("Cannot follow/unfollow your own playlist!");
-                return;
-            }
-
-            const { message, is_following } = await httpRequest.del(
-                `playlists/${playlistId}/follow`
-            );
-            console.log(message); // show toast this msg
-
-            // re-render sidebar
-            await reRenderSidebar();
-
-            // nếu nằm trong 'view' thì re-render
-            if (nextSongListId === playlistId) {
-                await fetchAndRenderPlaylist(playlistId);
-            }
-
-            // show toast success
-        } catch (error) {
-            console.dir(error);
-            console.error("Failed to unfollow playlist: ", error.message);
-
-            // show toast : error.response.error.message
-        }
-    }
-
-    async function handleDeletePlaylist(playlistId) {
-        try {
-            const playlist = await getPlaylistById(playlistId);
-            // prevent deleting default playlist
-            if (playlist.name === "Liked Songs") {
-                // show toast
-                console.error("Cannot delete default playlist!");
-                return;
-            }
-
-            const { message } = await httpRequest.del(
-                `playlists/${playlistId}`
-            );
-            console.log(message); // show toast this message
-
-            // re-render sidebar
-            await reRenderSidebar();
-
-            // nếu nằm trong 'view' thì quay về Home
-            if (nextSongListId === playlistId) {
-                $(".go-home-btn").click();
-            }
-
-            // show toast
-        } catch (error) {
-            console.dir(error);
-            console.error("Failed to delete playlist: ", error.message);
-
-            // show toast : error.response.error.message = "Permission denied: You can only delete your own playlists"
-        }
-    }
-
-    async function handleUnfollowArtist(artistId) {
-        try {
-            const { message, is_following } = await httpRequest.del(
-                `artists/${artistId}/follow`
-            );
-            console.log(message); // show toast this message
-
-            // re-render sidebar
-            await reRenderSidebar();
-
-            // nếu nằm trong 'view' thì re-render
-            if (nextSongListId === artistId) {
-                await fetchAndRenderArtist(artistId);
-            }
-
-            // show toast
-        } catch (error) {
-            console.dir(error);
-            console.error("Failed to unfollow artist: ", error.message);
-
-            // show toast : error.response.error.message
-            // "Not following this artist"
-        }
-    }
-
     // right click on playlist/artist in sidebar
     libraryContentContainer.addEventListener("contextmenu", async (e) => {
         // close other context menu first
@@ -949,6 +860,150 @@ document.addEventListener("DOMContentLoaded", async (e) => {
 document.addEventListener("contextmenu", (e) => {
     e.preventDefault();
 });
+
+async function handleFollowPlaylist(playlistId) {
+    try {
+        const playlist = await getPlaylistById(playlistId);
+        // không cho follow/unfollow playlist của mình (giống spotify)
+        if (playlist.is_owner) {
+            // show toast
+            console.error("Cannot follow your own playlist!");
+            return;
+        }
+
+        const { message, is_following } = await httpRequest.post(
+            `playlists/${playlistId}/follow`
+        );
+        console.log(message); // show toast this msg
+
+        // re-render sidebar
+        await reRenderSidebar();
+
+        // nếu nằm trong 'view' thì re-render playlist page
+        if (nextSongListId === playlistId) {
+            await fetchAndRenderPlaylist(playlistId);
+        }
+
+        // show toast success
+    } catch (error) {
+        console.dir(error);
+        console.error("Failed to follow playlist: ", error.message);
+
+        // show toast : error.response.error.message
+    }
+}
+
+async function handleUnfollowPlaylist(playlistId) {
+    try {
+        const playlist = await getPlaylistById(playlistId);
+        // không cho follow/unfollow playlist của mình (giống spotify)
+        if (playlist.is_owner) {
+            // show toast
+            console.error("Cannot unfollow your own playlist!");
+            return;
+        }
+
+        const { message, is_following } = await httpRequest.del(
+            `playlists/${playlistId}/follow`
+        );
+        console.log(message); // show toast this msg
+
+        // re-render sidebar
+        await reRenderSidebar();
+
+        // nếu nằm trong 'view' thì re-render playlist page
+        if (nextSongListId === playlistId) {
+            await fetchAndRenderPlaylist(playlistId);
+        }
+
+        // show toast success
+    } catch (error) {
+        console.dir(error);
+        console.error("Failed to unfollow playlist: ", error.message);
+
+        // show toast : error.response.error.message
+    }
+}
+
+async function handleDeletePlaylist(playlistId) {
+    try {
+        const playlist = await getPlaylistById(playlistId);
+        // prevent deleting default playlist
+        if (playlist.name === "Liked Songs") {
+            // show toast
+            console.error("Cannot delete default playlist!");
+            return;
+        }
+
+        const { message } = await httpRequest.del(`playlists/${playlistId}`);
+        console.log(message); // show toast this message
+
+        // re-render sidebar
+        await reRenderSidebar();
+
+        // nếu nằm trong 'view' thì quay về Home
+        if (nextSongListId === playlistId) {
+            $(".go-home-btn").click();
+        }
+
+        // show toast
+    } catch (error) {
+        console.dir(error);
+        console.error("Failed to delete playlist: ", error.message);
+
+        // show toast : error.response.error.message = "Permission denied: You can only delete your own playlists"
+    }
+}
+
+async function handleFollowArtist(artistId) {
+    try {
+        const { message, is_following } = await httpRequest.post(
+            `artists/${artistId}/follow`
+        );
+        console.log(message); // show toast this message
+
+        // re-render sidebar
+        await reRenderSidebar();
+
+        // nếu nằm trong 'view' thì re-render artist page
+        if (nextSongListId === artistId) {
+            await fetchAndRenderArtist(artistId);
+        }
+
+        // show toast
+    } catch (error) {
+        console.dir(error);
+        console.error("Failed to follow artist: ", error.message);
+
+        // show toast : error.response.error.message
+        // "Not following this artist"
+    }
+}
+
+async function handleUnfollowArtist(artistId) {
+    try {
+        const { message, is_following } = await httpRequest.del(
+            `artists/${artistId}/follow`
+        );
+        console.log(message); // show toast this message
+
+        // re-render sidebar
+        await reRenderSidebar();
+
+        // nếu nằm trong 'view' thì re-render artist page
+        if (nextSongListId === artistId) {
+            await fetchAndRenderArtist(artistId);
+        }
+
+        // show toast
+    } catch (error) {
+        console.dir(error);
+        console.error("Failed to unfollow artist: ", error.message);
+
+        // show toast : error.response.error.message
+        // "Not following this artist"
+    }
+}
 
 // Today's biggest hits section - trending tracks
 document.addEventListener("DOMContentLoaded", async () => {
@@ -1592,7 +1647,7 @@ document.addEventListener("mousemove", (e) => {
 // ====== playlist/artist page ======
 // ==================================
 
-// handle large play btn click
+// handle play-btn-large click
 function handlePlayBtnClick() {
     // songList đang xem không phải songList đang phát
     if (currentSongListId !== nextSongListId) {
@@ -1642,8 +1697,9 @@ $(".artist-section .track-list").addEventListener(
     handleSongListDblclick
 );
 
-// modify playlist - không sửa được Liked Songs || của người khác
-const playlistImage = $(".playlist-image");
+// ==================================================
+// ====== modify playlist + upload cover image ======
+// ==================================================
 const editPlaylistImageBtn = $(".edit-image-btn");
 const editPlaylistDetailsBtn = $(".edit-details-btn");
 const playlistEditDetailsModal = $("#playlistModal");
@@ -1653,7 +1709,6 @@ const playlistPreviewImage = $(".playlist-preview-image");
 const playlistEditDetailsSaveBtn = $(".playlist-save-btn");
 
 // form elements
-const playlistEditForm = $(".playlist-form");
 const playlistNameInput = $(".playlist-name-input");
 const playlistDescInput = $(".playlist-desc-input");
 
@@ -1672,7 +1727,18 @@ async function getPlaylistById(playlistId) {
         return playlist;
     } catch (error) {
         console.dir(error);
-        console.error("Cannot get Playlist!");
+        console.error("Cannot get Playlist: ", error.message);
+    }
+}
+
+async function getArtistById(artistId) {
+    try {
+        const artist = await httpRequest.get(`artists/${artistId}`);
+
+        return artist;
+    } catch (error) {
+        console.dir(error);
+        console.error("Cannot get Artist: ", error.message);
     }
 }
 
@@ -1698,6 +1764,7 @@ document.addEventListener("keydown", (e) => {
     }
 });
 
+// click playlist name to edit
 editPlaylistDetailsBtn.addEventListener("click", async (e) => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (!user) {
@@ -1732,6 +1799,7 @@ editPlaylistDetailsBtn.addEventListener("click", async (e) => {
     playlistEditDetailsModal.classList.add("show");
 });
 
+// click playlist cover image to upload new cover image
 editPlaylistImageBtn.addEventListener("click", () => {
     editPlaylistDetailsBtn.click();
     uploadImageBtn.click();
@@ -1761,6 +1829,7 @@ async function updatePlaylistImageUrl(playlistId, formData) {
     }
 }
 
+// click Save button
 playlistEditDetailsSaveBtn.addEventListener("click", async (e) => {
     const name = playlistNameInput.value.trim();
     const description = playlistDescInput.value.trim();
@@ -1810,7 +1879,7 @@ playlistNameInput.addEventListener("input", function () {
     this.classList.remove("invalid");
 });
 
-// upload image
+// ============ upload image ============
 uploadImageBtn.addEventListener("click", () => {
     playlistCoverInput.click();
 });
@@ -1840,7 +1909,52 @@ playlistCoverInput.addEventListener("change", async () => {
     };
 });
 
-// go to Home buttons
+// ======== follow/unfollow from playlist/artist page ========
+const playlistFollowBtn = $(".playlist-section .follow-btn");
+const artistFollowBtn = $(".artist-section .follow-btn");
+
+playlistFollowBtn.addEventListener("click", async (e) => {
+    const playlistSection = e.target.closest(".playlist-section");
+    const playlistId = playlistSection.dataset.id;
+
+    try {
+        const playlist = await getPlaylistById(playlistId);
+
+        const isFollowing = playlist.is_following;
+
+        if (isFollowing) {
+            await handleUnfollowPlaylist(playlistId);
+        } else {
+            await handleFollowPlaylist(playlistId);
+        }
+    } catch (error) {
+        console.dir(error);
+        console.error("Failed to follow/unfollow playlist: ", error.message);
+    }
+});
+
+artistFollowBtn.addEventListener("click", async (e) => {
+    const artistSection = e.target.closest(".artist-section");
+    const artistId = artistSection.dataset.id;
+
+    try {
+        const artist = await getArtistById(artistId);
+
+        const isFollowing = artist.is_following;
+
+        if (isFollowing) {
+            await handleUnfollowArtist(artistId);
+        } else {
+            await handleFollowArtist(artistId);
+        }
+        // doing
+    } catch (error) {
+        console.dir(error);
+        console.error("Failed to follow/unfollow artist: ", error.message);
+    }
+});
+
+// ======== go to Home buttons ========
 $$(".go-home-btn").forEach((button) => {
     button.addEventListener("click", () => {
         // display Biggest hits + popular artists

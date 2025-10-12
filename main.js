@@ -830,6 +830,14 @@ document.addEventListener("DOMContentLoaded", async (e) => {
 
     async function handleDeletePlaylist(playlistId) {
         try {
+            const playlist = await getPlaylistById(playlistId);
+            // prevent deleting default playlist
+            if (playlist.name === "Liked Songs") {
+                // show toast
+                console.error("Cannot delete default playlist!");
+                return;
+            }
+
             const { message } = await httpRequest.del(
                 `playlists/${playlistId}`
             );

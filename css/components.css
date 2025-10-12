@@ -1609,3 +1609,53 @@ textarea.playlist-form-input {
     opacity: 100;
     visibility: visible;
 }
+
+/* ===== context menu ===== */
+.context-menu {
+    position: absolute;
+    z-index: 99;
+
+    border-radius: 4px;
+    padding: 4px;
+    min-width: 150px;
+    width: 200px;
+    background: #282828;
+    overflow-y: auto;
+
+    opacity: 0;
+    visibility: hidden;
+}
+
+.context-menu.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.menu-item {
+    display: flex;
+    column-gap: 12px;
+    align-items: center;
+
+    height: 40px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-size: 16px;
+
+    cursor: pointer;
+}
+
+.menu-item:hover {
+    color: var(--accent-hover);
+    background: var(--bg-hover);
+}
+
+.icon-wrapper {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* playlist context menu */

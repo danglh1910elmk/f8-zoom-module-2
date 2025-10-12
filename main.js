@@ -753,8 +753,193 @@ document.addEventListener("DOMContentLoaded", async (e) => {
         }
     });
 
-    // context menu
+    // =============================================
+    // ======= playlist/artist context menu ========
+    // =============================================
+    const playlistContextMenu = $(".playlist-context-menu");
+    const artistContextMenu = $(".artist-context-menu");
+
+    let contextMenuId; // lưu playlistId/artistId khi chuột phải vào playlist/artist trong sidebar
+
+    function openContextMenu(e, contextMenu) {
+        const rect = contextMenu.getBoundingClientRect();
+
+        const menuWidth = rect.width;
+        const menuHeight = rect.height;
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight;
+
+        // initial pointer coordinates
+        const pointerX = e.pageX;
+        const pointerY = e.pageY;
+
+        if (
+            pointerY + menuHeight > screenHeight &&
+            pointerX + menuWidth <= screenWidth
+        ) {
+            contextMenu.style.top = `${pointerY - menuHeight}px`;
+            contextMenu.style.left = `${pointerX}px`;
+        } else if (
+            pointerY + menuHeight > screenHeight &&
+            pointerX + menuWidth > screenWidth
+        ) {
+            contextMenu.style.top = `${pointerY - menuHeight}px`;
+            contextMenu.style.left = `${pointerX - menuWidth}px`;
+        } else if (pointerX + menuWidth > screenWidth) {
+            contextMenu.style.top = `${pointerY}px`;
+            contextMenu.style.left = `${pointerX - menuWidth}px`;
+        } else {
+            contextMenu.style.top = `${pointerY}px`;
+            contextMenu.style.left = `${pointerX}px`;
+        }
+
+        contextMenu.classList.add("show");
+    }
+
+    async function handleUnfollowPlaylist(playlistId) {
+        try {
+            const playlist = await getPlaylistById(playlistId);
+            // không cho follow/unfollow playlist của mình (giống spotify)
+            if (playlist.is_owner) {
+                // show toast
+                console.error("Cannot follow/unfollow your own playlist!");
+                return;
+            }
+
+            const { message, is_following } = await httpRequest.del(
+                `playlists/${playlistId}/follow`
+            );
+            console.log(message); // show toast this msg
+
+            // re-render sidebar
+            await reRenderSidebar();
+
+            // nếu nằm trong 'view' thì re-render
+            if (nextSongListId === playlistId) {
+                await fetchAndRenderPlaylist(playlistId);
+            }
+
+            // show toast success
+        } catch (error) {
+            console.dir(error);
+            console.error("Failed to unfollow playlist: ", error.message);
+
+            // show toast : error.response.error.message
+        }
+    }
+
+    async function handleDeletePlaylist(playlistId) {
+        try {
+            const { message } = await httpRequest.del(
+                `playlists/${playlistId}`
+            );
+            console.log(message); // show toast this message
+
+            // re-render sidebar
+            await reRenderSidebar();
+
+            // nếu nằm trong 'view' thì quay về Home
+            if (nextSongListId === playlistId) {
+                $(".go-home-btn").click();
+            }
+
+            // show toast
+        } catch (error) {
+            console.dir(error);
+            console.error("Failed to delete playlist: ", error.message);
+
+            // show toast : error.response.error.message = "Permission denied: You can only delete your own playlists"
+        }
+    }
+
+    async function handleUnfollowArtist(artistId) {
+        try {
+            const { message, is_following } = await httpRequest.del(
+                `artists/${artistId}/follow`
+            );
+            console.log(message); // show toast this message
+
+            // re-render sidebar
+            await reRenderSidebar();
+
+            // nếu nằm trong 'view' thì re-render
+            if (nextSongListId === artistId) {
+                await fetchAndRenderArtist(artistId);
+            }
+
+            // show toast
+        } catch (error) {
+            console.dir(error);
+            console.error("Failed to unfollow artist: ", error.message);
+
+            // show toast : error.response.error.message
+            // "Not following this artist"
+        }
+    }
+
+    // right click on playlist/artist in sidebar
+    libraryContentContainer.addEventListener("contextmenu", async (e) => {
+        // close other context menu first
+        $(".context-menu.show")?.classList?.remove("show");
+
+        const item = e.target.closest(".library-item");
+        if (!item) return;
+
+        const type = item.dataset.type;
+        const id = item.dataset.id; // playlistId or artistId
+        contextMenuId = id;
+
+        if (type === "playlist") {
+            // open playlist context menu
+            openContextMenu(e, playlistContextMenu);
+        } else {
+            // open artist context menu
+            openContextMenu(e, artistContextMenu);
+        }
+    });
+
+    // close context menu when clicking outside
+    document.addEventListener("click", (e) => {
+        if (!e.target.closest(".context-menu")) {
+            // close any context menu being displayed
+            $(".context-menu.show")?.classList?.remove("show");
+        }
+    });
+
+    // click menu items in playlistContextMenu
+    playlistContextMenu.addEventListener("click", async (e) => {
+        const menuItem = e.target.closest(".menu-item");
+        if (!menuItem) return;
+
+        if (menuItem.classList.contains("unfollow-playlist")) {
+            await handleUnfollowPlaylist(contextMenuId);
+        } else if (menuItem.classList.contains("delete-playlist")) {
+            await handleDeletePlaylist(contextMenuId);
+        }
+
+        // close context menu
+        playlistContextMenu.classList.remove("show");
+    });
+
+    // click menu items in artistContextMenu
+    artistContextMenu.addEventListener("click", async (e) => {
+        const menuItem = e.target.closest(".menu-item");
+        if (!menuItem) return;
+
+        if (menuItem.classList.contains("unfollow-artist")) {
+            await handleUnfollowArtist(contextMenuId);
+        }
+
+        // close context menu
+        artistContextMenu.classList.remove("show");
+    });
+
     // search
+});
+
+// prevent default context menu
+document.addEventListener("contextmenu", (e) => {
+    e.preventDefault();
 });
 
 // Today's biggest hits section - trending tracks
@@ -1645,6 +1830,19 @@ playlistCoverInput.addEventListener("change", async () => {
         // e.target.result: base64-encoded data URL (result of reading image file)
         playlistPreviewImage.src = e.target.result;
     };
+});
+
+// go to Home buttons
+$$(".go-home-btn").forEach((button) => {
+    button.addEventListener("click", () => {
+        // display Biggest hits + popular artists
+        hitsSection.classList.add("show");
+        popularArtistsSection.classList.add("show");
+
+        // hide playlist + artist section
+        playlistSection.classList.remove("show");
+        artistSection.classList.remove("show");
+    });
 });
 
 // ======= tooltip =======

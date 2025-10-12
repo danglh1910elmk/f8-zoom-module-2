@@ -20,9 +20,13 @@
             <!-- Left Sidebar -->
             <aside class="sidebar">
                 <div class="sidebar-header">
-                    <a href="" class="logo" title="Spotify">
+                    <!-- <a href="" class="logo" title="Spotify">
                         <i class="fab fa-spotify"></i>
-                    </a>
+                    </a> -->
+
+                    <button class="logo go-home-btn">
+                        <i class="fab fa-spotify"></i>
+                    </button>
                 </div>
 
                 <nav class="sidebar-nav">
@@ -130,14 +134,10 @@
                 <header class="main-header">
                     <div class="search-container">
                         <div class="search-box">
-                            <a href="">
-                                <button class="home-btn tooltip">
-                                    <i class="fas fa-home"></i>
-                                    <span class="tooltip-text bottom">
-                                        Home
-                                    </span>
-                                </button>
-                            </a>
+                            <button class="home-btn go-home-btn tooltip">
+                                <i class="fas fa-home"></i>
+                                <span class="tooltip-text bottom"> Home </span>
+                            </button>
                             <div class="search-input-wrapper">
                                 <i class="fas fa-search search-icon"></i>
                                 <input
@@ -858,6 +858,46 @@
                 </div>
             </div>
         </div>
+
+        <!-- playlist contextmenu -->
+        <div class="playlist-context-menu context-menu">
+            <ul class="option-list">
+                <li class="menu-item unfollow-playlist">
+                    <div class="icon-wrapper">
+                        <i class="fa-solid fa-xmark"></i>
+                    </div>
+                    <span>Unfollow</span>
+                </li>
+                <li class="menu-item delete-playlist">
+                    <div class="icon-wrapper">
+                        <i class="fa-solid fa-circle-minus"></i>
+                    </div>
+                    <span>Delete</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- artist context menu -->
+        <div class="artist-context-menu context-menu">
+            <ul class="option-list">
+                <li class="menu-item unfollow-artist">
+                    <div class="icon-wrapper">
+                        <i class="fa-solid fa-xmark"></i>
+                    </div>
+                    <span>Unfollow</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- track context menu -->
+        <!-- <div class="track-context-menu context-menu">
+            <ul class="option-list">
+                <li class="menu-item">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Add to playlist</span>
+                </li>
+            </ul>
+        </div> -->
 
         <!-- Toast -->
         <div class="toast">

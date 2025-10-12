@@ -669,22 +669,37 @@
                         <i class="fas fa-info-circle"></i>
                         <span>Playlist name is required!</span>
                     </div>
+                    <!-- accept="image/.jpg, image/.jpeg, image/.png" -->
                     <div class="modal-content">
-                        <button class="upload-btn">
+                        <input
+                            accept="image/jpeg, image/png, image/jpg"
+                            type="file"
+                            class="playlist-cover-input"
+                            hidden
+                        />
+                        <button class="upload-image-btn">
                             <i class="fa-solid fa-music"></i>
-                            <span>Choose photo</span>
+                            <div class="button-overlay">
+                                <span>Choose photo</span>
+                            </div>
+                            <img
+                                class="playlist-preview-image"
+                                src=""
+                                alt="playlist preview image"
+                            />
                         </button>
                         <div class="modal-info">
                             <form action="" class="playlist-form">
+                                <!-- invalid -->
                                 <input
-                                    class="playlist-form-input invalid"
-                                    name="playlist-name"
+                                    class="playlist-name-input playlist-form-input"
+                                    name="name"
                                     type="text"
                                     placeholder="Add a name"
                                 />
                                 <textarea
-                                    class="playlist-form-input"
-                                    name="playlist-desc"
+                                    class="playlist-desc-input playlist-form-input"
+                                    name="description"
                                     placeholder="Add an optional description"
                                 ></textarea>
                             </form>
@@ -693,7 +708,7 @@
                 </div>
                 <div class="modal-footer">
                     <div class="row">
-                        <button class="save-btn">Save</button>
+                        <button class="playlist-save-btn">Save</button>
                     </div>
                     <p class="disclaimer-text">
                         By proceeding, you agree to give Spotify access to the
@@ -843,8 +858,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- playlist modal -->
 
         <!-- Toast -->
         <div class="toast">

@@ -26,6 +26,7 @@ let currentSongListId, nextSongListId;
 /*
     - mỗi khi vào 1 playlist/artist cự thể, gán nextSongListId = playlistId/artistId đồng thời gán nextSongList = DS bài hát của playlist/artist đó
     - khi nhấn vào playlistPlayBtn/artistPlayBtn (click vào 1 song trong songList) thì sẽ gán currentSongList = nextSongList và play currentSongList 
+    - currentSongListId, nextSongListId: mục đích để sau này kiểm tra xem nextSongList có nằm trong 'view' không
 */
 
 // Auth Modal Functionality
@@ -535,7 +536,7 @@ async function fetchAndRenderSidebar(user, type = 3, sortMode = "recent") {
             artists = await fetchFollowedArtists();
         }
 
-        //
+        // combine
         allItems = [...playlists, ...artists];
 
         // sort handling
@@ -699,280 +700,6 @@ document.addEventListener("DOMContentLoaded", async (e) => {
     // ==========================================
     // ===== handle playlist / artist click =====
     // ==========================================
-
-    // function renderPlaylistTracks(tracks, container) {
-    //     if (!tracks.length) {
-    //         container.innerHTML = `<p>The List is Empty!</p>`;
-    //         return;
-    //     }
-
-    //     const html = tracks
-    //         .map((track, index) => {
-    //             const imgSrc = track.track_image_url
-    //                 ? track.track_image_url
-    //                 : "placeholder.svg?height=40&width=40";
-
-    //             return `<div class="track-item ${
-    //                 currentIndex === index ? "active" : ""
-    //             }" data-index=${index}>
-    //                         <div class="track-number">${index + 1}</div>
-    //                         <div class="track-image">
-    //                             <img
-    //                                 src="${imgSrc}"
-    //                                 alt="${escapeHTML(track.track_title)}"
-    //                             />
-    //                         </div>
-    //                         <div class="track-info">
-    //                             <div class="track-name">
-    //                                 ${escapeHTML(track.track_title)}
-    //                             </div>
-    //                         </div>
-    //                         <div class="track-plays">
-    //                             ${escapeHTML(
-    //                                 track.track_play_count.toLocaleString()
-    //                             )}
-    //                         </div>
-    //                         <div class="track-duration">
-    //                             ${formatTrackDuration(track.track_duration)}
-    //                         </div>
-    //                         <button class="track-menu-btn">
-    //                             <i class="fas fa-ellipsis-h"></i>
-    //                         </button>
-    //                     </div>`;
-    //         })
-    //         .join("");
-    //     container.innerHTML = html;
-    // }
-
-    // function renderArtistTracks(tracks, container) {
-    //     if (!tracks.length) {
-    //         container.innerHTML = `<p>The List is Empty!</p>`;
-    //         return;
-    //     }
-
-    //     const html = tracks
-    //         .map((track, index) => {
-    //             const imgSrc = track.image_url
-    //                 ? track.image_url
-    //                 : "placeholder.svg?height=40&width=40";
-
-    //             return `<div class="track-item ${
-    //                 currentIndex === index ? "active" : ""
-    //             }" data-index=${index}>
-    //                         <div class="track-number">${index + 1}</div>
-    //                         <div class="track-image">
-    //                             <img
-    //                                 src="${imgSrc}"
-    //                                 alt="${escapeHTML(track.title)}"
-    //                             />
-    //                         </div>
-    //                         <div class="track-info">
-    //                             <div class="track-name">
-    //                                 ${escapeHTML(track.title)}
-    //                             </div>
-    //                         </div>
-    //                         <div class="track-plays">
-    //                             ${escapeHTML(track.play_count.toLocaleString())}
-    //                         </div>
-    //                         <div class="track-duration">
-    //                             ${formatTrackDuration(track.duration)}
-    //                         </div>
-    //                         <button class="track-menu-btn">
-    //                             <i class="fas fa-ellipsis-h"></i>
-    //                         </button>
-    //                     </div>`;
-    //         })
-    //         .join("");
-    //     container.innerHTML = html;
-    // }
-
-    // function renderTrackList(tracks, trackListId) {
-    //     const container = document.getElementById(trackListId);
-    //     if (!container) {
-    //         console.log("cannot find container");
-    //         return;
-    //     }
-
-    //     if (!tracks.length) {
-    //         container.innerHTML = `<p>The List is Empty!</p>`;
-    //         return;
-    //     }
-
-    //     const html = tracks
-    //         .map((track, index) => {
-    //             // normalize track fields
-    //             // vì Get playlist tracks & Get artist's popular tracks trả về track nhưng lại có fields khác nhau
-    //             const imgSrc =
-    //                 track.image_url ||
-    //                 track.track_image_url ||
-    //                 "placeholder.svg?height=40&width=40";
-
-    //             const title = escapeHTML(
-    //                 track.title || track.track_title || "Unknown Title"
-    //             );
-
-    //             const playCount = (
-    //                 track.play_count ||
-    //                 track.track_play_count ||
-    //                 0
-    //             ).toLocaleString();
-
-    //             const duration = formatTrackDuration(
-    //                 track.duration || track.track_duration || 0
-    //             );
-
-    //             return `<div class="track-item ${
-    //                 currentIndex === index ? "playing" : ""
-    //             }" data-index=${index}>
-    //                         <div class="track-number">${index + 1}</div>
-    //                         <div class="track-image">
-    //                             <img
-    //                                 src="${imgSrc}"
-    //                                 alt="${title}"
-    //                             />
-    //                         </div>
-    //                         <div class="track-info">
-    //                             <div class="track-name">
-    //                                 ${title}
-    //                             </div>
-    //                         </div>
-    //                         <div class="track-plays">
-    //                             ${playCount}
-    //                         </div>
-    //                         <div class="track-duration">
-    //                             ${duration}
-    //                         </div>
-    //                         <button class="track-menu-btn">
-    //                             <i class="fas fa-ellipsis-h"></i>
-    //                         </button>
-    //                     </div>`;
-    //         })
-    //         .join("");
-    //     container.innerHTML = html;
-    // }
-
-    // async function fetchAndRenderPlaylist(playlistId) {
-    //     const playlistImage = $(".playlist-image");
-    //     const playlistStatus = $(".playlist-status");
-    //     const playlistHeading = $(".playlist-heading");
-    //     const followBtn = $(".playlist-section .follow-btn");
-    //     const playlistStats = $(".playlist-stats");
-    //     const trackList = $(".playlist-section .track-list");
-
-    //     try {
-    //         const playlist = await httpRequest.get(`playlists/${playlistId}`);
-    //         console.log(playlist);
-
-    //         // update elements in playlist UI
-    //         // update image source
-    //         playlistImage.src = playlist.image_url
-    //             ? playlist.image_url
-    //             : "placeholder.svg";
-
-    //         // update playlist status (public/private)
-    //         playlistStatus.textContent = playlist.is_public
-    //             ? "Public Playlist"
-    //             : "Private Playlist";
-
-    //         // update playlist name
-    //         playlistHeading.textContent = playlist.name;
-
-    //         // update Follow button, không phải owner thì mới hiện
-    //         playlist.is_owner
-    //             ? followBtn.classList.remove("show")
-    //             : followBtn.classList.add("show");
-    //         followBtn.textContent = playlist.is_following
-    //             ? "Following"
-    //             : "Follow";
-
-    //         // update playlist stats
-    //         const totalTracks = playlist.total_tracks;
-    //         const totalDuration = playlist.total_duration;
-    //         playlistStats.textContent = `${
-    //             totalTracks > 1 ? totalTracks + " songs" : totalTracks + " song"
-    //         }, ${formatPlaylistDuration(totalDuration)}`;
-
-    //         // gắn ID cho trackList
-    //         trackList.setAttribute("id", playlistId);
-
-    //         // render tracks in playlist
-    //         const { tracks, pagination } = await httpRequest.get(
-    //             `playlists/${playlistId}/tracks`
-    //         );
-
-    //         // ! gán nextSongList = DS bài hát của playlist này
-    //         nextSongList = tracks;
-    //         nextSongListId = playlistId;
-
-    //         console.log(tracks);
-
-    //         renderTrackList(tracks, playlistId);
-    //     } catch (error) {
-    //         console.dir(error);
-    //     }
-    // }
-
-    // async function fetchAndRenderArtist(artistId) {
-    //     // get DOM elements
-    //     const heroImage = $(".hero-image");
-    //     const verifiedIcon = $(".verified-icon");
-    //     const verifiedText = $(".verified-text");
-    //     const artistName = $(".artist-name");
-    //     const monthlyListeners = $(".monthly-listeners");
-    //     const followBtn = $(".artist-controls .follow-btn");
-    //     const trackList = $(".artist-section .track-list");
-
-    //     try {
-    //         const artist = await httpRequest.get(`artists/${artistId}`);
-    //         console.log(artist);
-
-    //         // update elements in playlist UI
-    //         // update bg image
-    //         heroImage.src = artist.background_image_url
-    //             ? artist.background_image_url
-    //             : "placeholder.svg";
-
-    //         // update verified status
-    //         if (artist.is_verified) {
-    //             verifiedIcon.style.display = "block";
-    //             verifiedText.textContent = "Verified Artist";
-    //         } else {
-    //             verifiedIcon.style.display = "none";
-    //             verifiedText.textContent = "Unverified Artist";
-    //         }
-
-    //         // artist name
-    //         artistName.textContent = artist.name;
-
-    //         // update monthlyListeners
-    //         monthlyListeners.textContent = `${artist.monthly_listeners.toLocaleString()} monthly listeners`;
-
-    //         // update follow button
-    //         followBtn.classList.add("show");
-    //         followBtn.textContent = artist.is_following
-    //             ? "Following"
-    //             : "Follow";
-
-    //         // gắn ID cho trackList
-    //         trackList.setAttribute("id", artistId);
-
-    //         // render popular tracks of this artist
-    //         const { tracks, pagination } = await httpRequest.get(
-    //             `artists/${artistId}/tracks/popular`
-    //         );
-
-    //         // gán nextSongList = DS bài hát
-    //         nextSongList = tracks;
-    //         nextSongListId = artistId;
-
-    //         console.log(tracks);
-
-    //         renderTrackList(tracks, artistId);
-    //     } catch (error) {
-    //         console.dir(error);
-    //     }
-    // }
-
     libraryContentContainer.addEventListener("click", async (e) => {
         const libraryItem = e.target.closest(".library-item");
         const id = libraryItem.dataset.id;
@@ -1054,6 +781,9 @@ async function fetchAndRenderPlaylist(playlistId) {
         const playlist = await httpRequest.get(`playlists/${playlistId}`);
         console.log(playlist);
 
+        // đính playlistId vào playlist-section
+        playlistSection.setAttribute("data-id", playlistId);
+
         // update elements in playlist UI
         // update image source
         playlistImage.src = playlist.image_url
@@ -1114,6 +844,9 @@ async function fetchAndRenderArtist(artistId) {
     try {
         const artist = await httpRequest.get(`artists/${artistId}`);
         console.log(artist);
+
+        // đính artistId vào artist-section
+        artistSection.setAttribute("data-id", artistId);
 
         // update elements in playlist UI
         // update bg image
@@ -1279,7 +1012,7 @@ let isAdjustingVolume = false;
 function renderTrackList(tracks, trackListId) {
     const container = document.getElementById(trackListId);
     if (!container) {
-        console.log("Cannot find container");
+        console.error("Cannot find container");
         return;
     }
 
@@ -1287,8 +1020,6 @@ function renderTrackList(tracks, trackListId) {
         container.innerHTML = `<p>The List is Empty!</p>`;
         return;
     }
-
-    console.log("render", tracks, trackListId);
 
     let trackNumber, addPlaying, addPlayingText;
 
@@ -1369,8 +1100,6 @@ function calculateBarFillPercent(e, barElement) {
 
     let barFillPercent =
         ((currentXCoord - leftBarElementCoord) * 100) / barWidth;
-
-    // console.log(barFillPercent);
 
     // clamp barFillPercent between 0% and 100%
     if (barFillPercent < 0) barFillPercent = 0;
@@ -1627,6 +1356,10 @@ document.addEventListener("mousemove", (e) => {
     }
 });
 
+// ==================================
+// ====== playlist/artist page ======
+// ==================================
+
 // handle large play btn click
 function handlePlayBtnClick() {
     // songList đang xem không phải songList đang phát
@@ -1635,7 +1368,7 @@ function handlePlayBtnClick() {
 
         currentIndex = 0;
         currentSongList = nextSongList;
-        currentSongListId = nextSongListId; // mục đích để sau này kiểm tra xem nextSongList có nằm trong 'view' không
+        currentSongListId = nextSongListId;
         loadRenderAndPlay();
 
         // change icon
@@ -1677,7 +1410,200 @@ $(".artist-section .track-list").addEventListener(
     handleSongListDblclick
 );
 
-// tooltip
+// modify playlist - không sửa được Liked Songs || của người khác
+const playlistImage = $(".playlist-image");
+const editPlaylistImageBtn = $(".edit-image-btn");
+const editPlaylistDetailsBtn = $(".edit-details-btn");
+const playlistEditDetailsModal = $("#playlistModal");
+const playlistCoverInput = $(".playlist-cover-input");
+const uploadImageBtn = $(".upload-image-btn");
+const playlistPreviewImage = $(".playlist-preview-image");
+const playlistEditDetailsSaveBtn = $(".playlist-save-btn");
+
+// form elements
+const playlistEditForm = $(".playlist-form");
+const playlistNameInput = $(".playlist-name-input");
+const playlistDescInput = $(".playlist-desc-input");
+
+let editPlaylistId, formData;
+
+function closePlaylistEditDetailsModal() {
+    playlistEditDetailsModal.classList.remove("show");
+    // remove error message when closing modal
+    playlistNameInput.classList.remove("invalid");
+}
+
+async function getPlaylistById(playlistId) {
+    try {
+        const playlist = await httpRequest.get(`playlists/${playlistId}`);
+
+        return playlist;
+    } catch (error) {
+        console.dir(error);
+        console.error("Cannot get Playlist!");
+    }
+}
+
+// close playlistEditDetailsModal when clicking close button
+$("#playlistModalClose").addEventListener("click", () => {
+    closePlaylistEditDetailsModal();
+});
+
+// close playlistEditDetailsModal when clicking overlay
+playlistEditDetailsModal.addEventListener("click", (e) => {
+    if (e.target === playlistEditDetailsModal) {
+        closePlaylistEditDetailsModal();
+    }
+});
+
+// close playlistEditDetailsModal with Escape key
+document.addEventListener("keydown", (e) => {
+    if (
+        e.key === "Escape" &&
+        playlistEditDetailsModal.classList.contains("show")
+    ) {
+        closePlaylistEditDetailsModal();
+    }
+});
+
+editPlaylistDetailsBtn.addEventListener("click", async (e) => {
+    editPlaylistId = playlistSection.dataset.id;
+    const playlist = await getPlaylistById(editPlaylistId);
+
+    // cannot edit if the playlist is 'Liked Songs' (default) or owned by other users
+    if (!playlist.is_owner) {
+        // show toast
+
+        console.error("Cannot edit other user's playlist!");
+        return;
+    } else if (playlist.name === "Liked Songs") {
+        // show toast
+
+        console.error("Cannot edit default playlist!");
+        return;
+    }
+
+    // fill current playlist name
+    playlistNameInput.value = playlist.name;
+
+    // show current playlist cover image in edit modal
+    playlistPreviewImage.src = playlist.image_url;
+
+    // show modal
+    playlistEditDetailsModal.classList.add("show");
+});
+
+editPlaylistImageBtn.addEventListener("click", () => {
+    editPlaylistDetailsBtn.click();
+    uploadImageBtn.click();
+});
+
+async function updatePlaylistImageUrl(playlistId, formData) {
+    if (!formData || !formData.get("cover")) return;
+
+    try {
+        const { file, message, playlist_id } = await httpRequest.post(
+            `upload/playlist/${playlistId}/cover`,
+            formData
+        );
+
+        console.log(message);
+
+        // update playlist's image_url to DB
+        const res = await httpRequest.put(`playlists/${playlistId}`, {
+            image_url: `https://spotify.f8team.dev${file.url}`,
+        });
+        console.log(res.message);
+    } catch (error) {
+        console.dir(error);
+        console.error("Failed to update playlist cover image!");
+
+        // show toast error
+    }
+}
+
+playlistEditDetailsSaveBtn.addEventListener("click", async (e) => {
+    const name = playlistNameInput.value.trim();
+    const description = playlistDescInput.value.trim();
+    const data = { name, description };
+
+    // check whether name is empty
+    if (!name) {
+        playlistNameInput.classList.add("invalid");
+        return;
+    }
+
+    try {
+        // update playlist name + desc
+        const { message, playlist } = await httpRequest.put(
+            `playlists/${editPlaylistId}`,
+            data
+        );
+        console.log(message);
+
+        // upload playlist cover image
+        await updatePlaylistImageUrl(editPlaylistId, formData);
+
+        // re-render sidebar
+        const type = +localStorage.getItem("type"); // convert to number
+        const sortMode = localStorage.getItem("sortMode"); // get config from localStorage
+        await fetchAndRenderSidebar(true, type, sortMode);
+
+        // re-render playlist
+        await fetchAndRenderPlaylist(editPlaylistId);
+
+        // show toast success
+    } catch (error) {
+        console.dir(error);
+        console.error("Cannot update this playlist!");
+        // show toast
+    } finally {
+        // close modal
+        closePlaylistEditDetailsModal();
+
+        // clear
+        formData = null;
+        playlistCoverInput.value = ""; // Clear file input
+        playlistPreviewImage.src = "";
+    }
+});
+
+// hide error message when user types something
+playlistNameInput.addEventListener("input", function () {
+    this.classList.remove("invalid");
+});
+
+// upload image
+uploadImageBtn.addEventListener("click", () => {
+    playlistCoverInput.click();
+});
+
+// listen for changes to the file input
+playlistCoverInput.addEventListener("change", async () => {
+    // get the first file selected by user
+    const file = playlistCoverInput.files[0];
+    if (!file) return;
+
+    formData = new FormData();
+    formData.append("cover", file); // append the file under the key 'cover'
+
+    console.log(file);
+
+    // update preview image
+    const reader = new FileReader(); // create new FileReader instance to read image file
+
+    // start reading the file as Data URL
+    reader.readAsDataURL(file);
+
+    // run once the file is successfully read
+    reader.onload = (e) => {
+        // e.target = reader
+        // e.target.result: base64-encoded data URL (result of reading image file)
+        playlistPreviewImage.src = e.target.result;
+    };
+});
+
+// ======= tooltip =======
 $$(".tooltip").forEach((ele) => {
     const tooltipText = ele.querySelector(".tooltip-text");
     if (!tooltipText) return;

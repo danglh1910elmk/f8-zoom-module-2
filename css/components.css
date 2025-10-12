@@ -662,14 +662,16 @@
 }
 
 .playlist-hero {
-    display: grid;
-    grid-template-columns: 1fr 3fr;
+    /* display: grid;
+    grid-template-columns: 1fr 3fr; */
+    display: flex;
 
     background-color: rgb(83, 83, 83);
-    container-type: size;
 }
 
 .hero-left {
+    width: 25%;
+
     display: flex;
     align-items: center;
     justify-content: center;
@@ -682,13 +684,19 @@
     border-radius: 4px;
     width: 90%;
     aspect-ratio: 1 / 1;
+    overflow: hidden;
 }
 
 .edit-image-btn .playlist-image {
     border-radius: 4px;
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
 }
 
 .hero-right {
+    width: 75%;
+
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -703,17 +711,14 @@
 }
 
 .hero-right .playlist-heading {
-    font-size: 56px;
+    text-align: left;
+    font-size: 50px;
     font-weight: 900;
     color: var(--text-primary);
 
-    /* white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden; */
-
     display: -webkit-box;
-    -webkit-line-clamp: 1;
-    line-clamp: 1;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -1179,29 +1184,60 @@
     margin-top: var(--spacing-md);
 }
 
-.upload-btn {
+.upload-image-btn {
     flex-shrink: 0;
     width: 180px;
     height: 180px;
     background: #282828;
     color: var(--text-primary);
     border-radius: 4px;
+
+    overflow: hidden;
+    position: relative;
 }
 
-.upload-btn i {
+.button-overlay {
+    background: rgba(0, 0, 0, 0.5);
+
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    opacity: 0;
+    visibility: hidden;
+    transition: 0.2s ease;
+}
+
+.playlist-preview-image {
+    object-fit: cover;
+    border-radius: 4px;
+    width: 100%;
+    height: 100%;
+
+    position: absolute;
+    inset: 0;
+}
+
+.upload-image-btn i {
     font-size: 48px;
 }
 
-.upload-btn span {
-    display: none;
+.upload-image-btn span {
     font-size: 16px;
+    color: #fff;
+    font-weight: 600;
 }
 
-.upload-btn:hover span {
-    display: block;
+.upload-image-btn:hover .button-overlay {
+    opacity: 1;
+    visibility: visible;
 }
 
-.upload-btn:hover i {
+.upload-image-btn:hover i {
     display: none;
 }
 
@@ -1256,7 +1292,7 @@ textarea.playlist-form-input {
     margin-top: var(--spacing-sm);
 }
 
-.modal-footer .save-btn {
+.modal-footer .playlist-save-btn {
     display: block;
     margin-left: auto;
     height: 48px;
@@ -1268,7 +1304,7 @@ textarea.playlist-form-input {
     font-weight: 700;
 }
 
-.modal-footer .save-btn:hover {
+.modal-footer .playlist-save-btn:hover {
     scale: 1.02;
 }
 

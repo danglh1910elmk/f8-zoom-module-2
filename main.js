@@ -549,6 +549,12 @@ async function fetchAndRenderSidebar(user, type = 3, sortMode = "recent") {
     }
 }
 
+async function reRenderSidebar() {
+    const type = +localStorage.getItem("type"); // convert to number
+    const sortMode = localStorage.getItem("sortMode"); // get config from localStorage
+    await fetchAndRenderSidebar(true, type, sortMode);
+}
+
 // INITIALIZE
 // lấy được thông tin user rồi hiển thị
 document.addEventListener("DOMContentLoaded", async function () {
@@ -712,9 +718,42 @@ document.addEventListener("DOMContentLoaded", async (e) => {
         }
     });
 
-    // modify a playlist
+    // ==========================================
+    // ========== create new playlist ===========
+    // ==========================================
+
+    createPlaylistBtn.addEventListener("click", async () => {
+        const user = JSON.parse(localStorage.getItem("user"));
+        if (!user) return;
+
+        try {
+            const playlistInfo = {
+                name: "My New Playlist",
+                description: "Playlist description",
+                is_public: true,
+            };
+            const { message, playlist } = await httpRequest.post(
+                "playlists",
+                playlistInfo
+            );
+            console.log(message);
+
+            // re-render sidebar
+            await reRenderSidebar();
+
+            // open new created playlist
+            await handlePlaylistClick(playlist.id);
+
+            // show toast
+        } catch (error) {
+            console.dir(error);
+            console.error("Failed to create new playlist: ", error.message);
+
+            // show toast
+        }
+    });
+
     // context menu
-    // create new playlist
     // search
 });
 
@@ -1467,6 +1506,13 @@ document.addEventListener("keydown", (e) => {
 });
 
 editPlaylistDetailsBtn.addEventListener("click", async (e) => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user) {
+        // show toast
+        console.error("log in/sign up to edit playlist");
+        return;
+    }
+
     editPlaylistId = playlistSection.dataset.id;
     const playlist = await getPlaylistById(editPlaylistId);
 
@@ -1487,7 +1533,7 @@ editPlaylistDetailsBtn.addEventListener("click", async (e) => {
     playlistNameInput.value = playlist.name;
 
     // show current playlist cover image in edit modal
-    playlistPreviewImage.src = playlist.image_url;
+    playlistPreviewImage.src = playlist.image_url || "placeholder.svg";
 
     // show modal
     playlistEditDetailsModal.classList.add("show");
@@ -1545,9 +1591,7 @@ playlistEditDetailsSaveBtn.addEventListener("click", async (e) => {
         await updatePlaylistImageUrl(editPlaylistId, formData);
 
         // re-render sidebar
-        const type = +localStorage.getItem("type"); // convert to number
-        const sortMode = localStorage.getItem("sortMode"); // get config from localStorage
-        await fetchAndRenderSidebar(true, type, sortMode);
+        await reRenderSidebar();
 
         // re-render playlist
         await fetchAndRenderPlaylist(editPlaylistId);

@@ -1395,6 +1395,12 @@ function loadCurrentSong() {
     );
     playerArtist.textContent = artistName;
 
+    // đính track_id của currentSong vào add-btn
+    addBtn.setAttribute(
+        "data-track-id",
+        currentSong.track_id || currentSong.id
+    );
+
     // update duration
     const duration = formatTrackDuration(
         currentSong.duration || currentSong.track_duration || 0
@@ -1698,7 +1704,7 @@ const trackContextMenu = $(".track-context-menu");
 const playlistSelectModal = $(".playlist-select-modal-overlay");
 const playlistSelectModalList = $(".playlist-select-modal-list");
 
-let trackId; // lưu lại track_id mỗi khi chuột phải vào 1 track
+let currentTrackId; // lưu lại track_id mỗi khi chuột phải vào 1 track
 
 function openTrackContextMenu() {
     playlistSelectModal.classList.add("show");
@@ -1767,7 +1773,7 @@ $(".playlist-section .track-list").addEventListener("contextmenu", (e) => {
     const trackItem = e.target.closest(".track-item ");
     if (!trackItem) return;
 
-    trackId = trackItem.dataset.trackId;
+    currentTrackId = trackItem.dataset.trackId; // lưu lại trackId mỗi khi chuột phải vào 1 track
 
     // hiện option: remove from this playlist
     $(".menu-item.remove-from-playlist").classList.add("show");
@@ -1784,7 +1790,7 @@ $(".artist-section .track-list").addEventListener("contextmenu", (e) => {
     const trackItem = e.target.closest(".track-item ");
     if (!trackItem) return;
 
-    trackId = trackItem.dataset.trackId;
+    currentTrackId = trackItem.dataset.trackId; // lưu lại trackId mỗi khi chuột phải vào 1 track
 
     // ẩn option: remove from this playlist
     $(".menu-item.remove-from-playlist").classList.remove("show");
@@ -1802,24 +1808,14 @@ trackContextMenu.addEventListener("click", (e) => {
         // open playlist-select-modal
         openTrackContextMenu();
     } else if (menuItem.classList.contains("remove-from-playlist")) {
-        removeTrackFromPlaylist(nextSongListId, trackId); // doing
+        removeTrackFromPlaylist(nextSongListId, currentTrackId); // nextSongListId chính là playlistId của playlist đang trong 'view'
     }
 
     // close trackContextMenu
     trackContextMenu.classList.remove("show");
 });
 
-// handle playlist-select-modal item click
-playlistSelectModal.addEventListener("click", async (e) => {
-    // close modal when clicking overlay
-    if (!e.target.closest(".playlist-select-modal")) {
-        playlistSelectModal.classList.remove("show");
-    }
-
-    const playlistItem = e.target.closest(".playlist-item");
-    if (!playlistItem) return;
-
-    const playlistId = playlistItem.dataset.id;
+async function addTrackToPlaylist(playlistId, trackId) {
     const data = {
         track_id: trackId,
         position: 0,
@@ -1841,10 +1837,26 @@ playlistSelectModal.addEventListener("click", async (e) => {
         console.dir(error);
         console.error("Failed to add this track to playlist: ", error.message);
         // show toast : error.response.error.message
-    } finally {
-        // close modal
+    }
+}
+
+// handle playlist-select-modal item click
+playlistSelectModal.addEventListener("click", async (e) => {
+    // close modal when clicking overlay
+    if (!e.target.closest(".playlist-select-modal")) {
         playlistSelectModal.classList.remove("show");
     }
+
+    // to get playlistId
+    const playlistItem = e.target.closest(".playlist-item");
+    if (!playlistItem) return;
+
+    const playlistId = playlistItem.dataset.id;
+
+    await addTrackToPlaylist(playlistId, currentTrackId); // currentTrackId đã lấy được khi right click vào mỗi track
+
+    // close modal
+    playlistSelectModal.classList.remove("show");
 });
 
 // close modal with "Escape" key
@@ -2110,6 +2122,44 @@ artistFollowBtn.addEventListener("click", async (e) => {
         console.dir(error);
         console.error("Failed to follow/unfollow artist: ", error.message);
     }
+});
+
+// ======== add to Like Songs button ========
+let likedSongPlaylistId = null;
+
+async function getLikedSongId() {
+    try {
+        // get user-owned playlists
+        const { playlists } = await httpRequest.get("me/playlists");
+
+        const likedSongPlaylist = playlists.find(
+            (playlist) => playlist.name === "Liked Songs"
+        );
+
+        return likedSongPlaylist.id;
+    } catch (error) {
+        console.dir(error);
+        console.error("Failed to get Liked Song ID: ", error.message);
+        return;
+    }
+}
+
+addBtn.addEventListener("click", async () => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user) return;
+
+    if (!likedSongPlaylistId) {
+        likedSongPlaylistId = await getLikedSongId();
+    }
+
+    if (!likedSongPlaylistId) return;
+
+    // get trackId in addBtn
+    const trackId = addBtn.dataset.trackId;
+
+    if (!trackId) return;
+
+    await addTrackToPlaylist(likedSongPlaylistId, trackId);
 });
 
 // ======== go to Home buttons ========

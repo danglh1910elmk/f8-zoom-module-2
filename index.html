@@ -20,7 +20,7 @@
             <!-- Left Sidebar -->
             <aside class="sidebar">
                 <div class="sidebar-header">
-                    <button class="logo go-home-btn">
+                    <button class="logo go-home-btn" title="Spotify">
                         <i class="fab fa-spotify"></i>
                     </button>
                 </div>
@@ -132,15 +132,21 @@
                         <div class="search-box">
                             <button class="home-btn go-home-btn tooltip">
                                 <i class="fas fa-home"></i>
-                                <span class="tooltip-text bottom"> Home </span>
+                                <span class="tooltip-text bottom">Home</span>
                             </button>
-                            <div class="search-input-wrapper">
+                            <div class="search-input-wrapper tooltip">
                                 <i class="fas fa-search search-icon"></i>
                                 <input
                                     type="text"
                                     placeholder="What do you want to play?"
                                     class="search-input"
                                 />
+                                <span
+                                    class="tooltip-text bottom"
+                                    style="bottom: -90%"
+                                >
+                                    Search
+                                </span>
                             </div>
                         </div>
                     </div>

@@ -855,9 +855,28 @@
             </div>
         </div>
 
+        <!-- playlist select modal -->
+        <div class="playlist-select-modal-overlay modal-overlay">
+            <div class="playlist-select-modal">
+                <h2 class="modal-title">Add to Playlist:</h2>
+                <ul class="playlist-select-modal-list">
+                    <!-- <li class="playlist-item">
+                        <div class="image-wrapper">
+                            <img
+                                class="playlist-cover-image"
+                                src="placeholder.svg"
+                                alt="Playlist cover image"
+                            />
+                        </div>
+                        <h3 class="playlist-name">Playlist name</h3>
+                    </li> -->
+                </ul>
+            </div>
+        </div>
+
         <!-- playlist contextmenu -->
         <div class="playlist-context-menu context-menu">
-            <ul class="option-list">
+            <ul class="menu-list">
                 <li class="menu-item unfollow-playlist">
                     <div class="icon-wrapper">
                         <i class="fa-solid fa-xmark"></i>
@@ -875,7 +894,7 @@
 
         <!-- artist context menu -->
         <div class="artist-context-menu context-menu">
-            <ul class="option-list">
+            <ul class="menu-list">
                 <li class="menu-item unfollow-artist">
                     <div class="icon-wrapper">
                         <i class="fa-solid fa-xmark"></i>
@@ -886,14 +905,22 @@
         </div>
 
         <!-- track context menu -->
-        <!-- <div class="track-context-menu context-menu">
-            <ul class="option-list">
-                <li class="menu-item">
-                    <i class="fa-solid fa-plus"></i>
+        <div class="track-context-menu context-menu">
+            <ul class="menu-list">
+                <li class="menu-item add-to-playlist">
+                    <div class="icon-wrapper">
+                        <i class="fa-solid fa-plus"></i>
+                    </div>
                     <span>Add to playlist</span>
                 </li>
+                <li class="menu-item remove-from-playlist show">
+                    <div class="icon-wrapper">
+                        <i class="fa-solid fa-trash"></i>
+                    </div>
+                    <span>Remove from this playlist</span>
+                </li>
             </ul>
-        </div> -->
+        </div>
 
         <!-- Toast -->
         <div class="toast">

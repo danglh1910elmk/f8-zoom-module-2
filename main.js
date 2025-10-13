@@ -761,41 +761,6 @@ document.addEventListener("DOMContentLoaded", async (e) => {
 
     let contextMenuId; // lưu playlistId/artistId khi chuột phải vào playlist/artist trong sidebar
 
-    function openContextMenu(e, contextMenu) {
-        const rect = contextMenu.getBoundingClientRect();
-
-        const menuWidth = rect.width;
-        const menuHeight = rect.height;
-        const screenWidth = window.innerWidth;
-        const screenHeight = window.innerHeight;
-
-        // initial pointer coordinates
-        const pointerX = e.pageX;
-        const pointerY = e.pageY;
-
-        if (
-            pointerY + menuHeight > screenHeight &&
-            pointerX + menuWidth <= screenWidth
-        ) {
-            contextMenu.style.top = `${pointerY - menuHeight}px`;
-            contextMenu.style.left = `${pointerX}px`;
-        } else if (
-            pointerY + menuHeight > screenHeight &&
-            pointerX + menuWidth > screenWidth
-        ) {
-            contextMenu.style.top = `${pointerY - menuHeight}px`;
-            contextMenu.style.left = `${pointerX - menuWidth}px`;
-        } else if (pointerX + menuWidth > screenWidth) {
-            contextMenu.style.top = `${pointerY}px`;
-            contextMenu.style.left = `${pointerX - menuWidth}px`;
-        } else {
-            contextMenu.style.top = `${pointerY}px`;
-            contextMenu.style.left = `${pointerX}px`;
-        }
-
-        contextMenu.classList.add("show");
-    }
-
     // right click on playlist/artist in sidebar
     libraryContentContainer.addEventListener("contextmenu", async (e) => {
         // close other context menu first
@@ -1319,6 +1284,8 @@ function renderTrackList(tracks, trackListId) {
                 track.track_image_url ||
                 "placeholder.svg?height=40&width=40";
 
+            const trackId = escapeHTML(track.track_id || track.id);
+
             const title = escapeHTML(
                 track.title || track.track_title || "Unknown Title"
             );
@@ -1350,7 +1317,7 @@ function renderTrackList(tracks, trackListId) {
                 addPlayingText = "";
             }
 
-            return `<div class="track-item ${addPlaying}" data-index=${index}>
+            return `<div class="track-item ${addPlaying}" data-index=${index} data-track-id=${trackId}>
                             <div class="track-number">${trackNumber}</div>
                             <div class="track-image">
                                 <img 
@@ -1647,6 +1614,41 @@ document.addEventListener("mousemove", (e) => {
 // ====== playlist/artist page ======
 // ==================================
 
+function openContextMenu(e, contextMenu) {
+    const rect = contextMenu.getBoundingClientRect();
+
+    const menuWidth = rect.width;
+    const menuHeight = rect.height;
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+
+    // initial pointer coordinates
+    const pointerX = e.pageX;
+    const pointerY = e.pageY;
+
+    if (
+        pointerY + menuHeight > screenHeight &&
+        pointerX + menuWidth <= screenWidth
+    ) {
+        contextMenu.style.top = `${pointerY - menuHeight}px`;
+        contextMenu.style.left = `${pointerX}px`;
+    } else if (
+        pointerY + menuHeight > screenHeight &&
+        pointerX + menuWidth > screenWidth
+    ) {
+        contextMenu.style.top = `${pointerY - menuHeight}px`;
+        contextMenu.style.left = `${pointerX - menuWidth}px`;
+    } else if (pointerX + menuWidth > screenWidth) {
+        contextMenu.style.top = `${pointerY}px`;
+        contextMenu.style.left = `${pointerX - menuWidth}px`;
+    } else {
+        contextMenu.style.top = `${pointerY}px`;
+        contextMenu.style.left = `${pointerX}px`;
+    }
+
+    contextMenu.classList.add("show");
+}
+
 // handle play-btn-large click
 function handlePlayBtnClick() {
     // songList đang xem không phải songList đang phát
@@ -1671,6 +1673,7 @@ playlistPlayBtn.addEventListener("click", handlePlayBtnClick);
 
 artistPlayBtn.addEventListener("click", handlePlayBtnClick);
 
+// play music when clicking on track in list
 function handleSongListDblclick(e) {
     const trackItem = e.target.closest(".track-item");
     const menuBtn = e.target.closest(".track-menu-btn");
@@ -1685,17 +1688,171 @@ function handleSongListDblclick(e) {
     loadRenderAndPlay();
 }
 
-// handle playlist's track-list double clicks
-$(".playlist-section .track-list").addEventListener(
-    "dblclick",
-    handleSongListDblclick
-);
+// handle track-list double clicks
+$$(".track-list").forEach((trackList) => {
+    trackList.addEventListener("dblclick", handleSongListDblclick);
+});
 
-// handle artist's popular track-list double clicks
-$(".artist-section .track-list").addEventListener(
-    "dblclick",
-    handleSongListDblclick
-);
+// ====== track contextmenu ======
+const trackContextMenu = $(".track-context-menu");
+const playlistSelectModal = $(".playlist-select-modal-overlay");
+const playlistSelectModalList = $(".playlist-select-modal-list");
+
+let trackId; // lưu lại track_id mỗi khi chuột phải vào 1 track
+
+function openTrackContextMenu() {
+    playlistSelectModal.classList.add("show");
+    fetchAndRenderPlaylistSelectModal();
+}
+
+async function fetchAndRenderPlaylistSelectModal() {
+    try {
+        // get user-owned playlists
+        const { playlists } = await httpRequest.get("me/playlists");
+
+        // render
+        const html = playlists
+            .map((playlist) => {
+                return `<li class="playlist-item" data-id=${playlist.id}>
+                        <div class="image-wrapper">
+                            <img
+                                class="playlist-cover-image"
+                                src="${escapeHTML(
+                                    playlist.image_url || "placeholder.svg"
+                                )}"
+                                alt="Playlist cover image"
+                            />
+                        </div>
+                        <h3 class="playlist-name">
+                            ${escapeHTML(playlist.name)}
+                        </h3>
+                    </li>`;
+            })
+            .join("");
+        playlistSelectModalList.innerHTML = html;
+    } catch (error) {
+        console.dir(error);
+    }
+}
+
+async function removeTrackFromPlaylist(playlistId, trackId) {
+    try {
+        const { message } = await httpRequest.del(
+            `playlists/${playlistId}/tracks/${trackId}`
+        );
+        console.log(message);
+
+        // re-render playlist page
+        await fetchAndRenderPlaylist(playlistId);
+
+        // re-render sidebar
+        await reRenderSidebar();
+
+        // show toast
+    } catch (error) {
+        console.dir(error);
+        console.error(
+            "Failed to delete this track from playlist: ",
+            error.message
+        );
+        // show toast
+    }
+}
+
+// right click vào track ở playlist page
+$(".playlist-section .track-list").addEventListener("contextmenu", (e) => {
+    // close other context menus first
+    $(".context-menu.show")?.classList?.remove("show");
+
+    const trackItem = e.target.closest(".track-item ");
+    if (!trackItem) return;
+
+    trackId = trackItem.dataset.trackId;
+
+    // hiện option: remove from this playlist
+    $(".menu-item.remove-from-playlist").classList.add("show");
+
+    // open trackContextMenu
+    openContextMenu(e, trackContextMenu);
+});
+
+// right click vào track ở artist page
+$(".artist-section .track-list").addEventListener("contextmenu", (e) => {
+    // close other context menus first
+    $(".context-menu.show")?.classList?.remove("show");
+
+    const trackItem = e.target.closest(".track-item ");
+    if (!trackItem) return;
+
+    trackId = trackItem.dataset.trackId;
+
+    // ẩn option: remove from this playlist
+    $(".menu-item.remove-from-playlist").classList.remove("show");
+
+    // open trackContextMenu
+    openContextMenu(e, trackContextMenu);
+});
+
+// click on menu-item of trackContextMenu
+trackContextMenu.addEventListener("click", (e) => {
+    const menuItem = e.target.closest(".menu-item");
+    if (!menuItem) return;
+
+    if (menuItem.classList.contains("add-to-playlist")) {
+        // open playlist-select-modal
+        openTrackContextMenu();
+    } else if (menuItem.classList.contains("remove-from-playlist")) {
+        removeTrackFromPlaylist(nextSongListId, trackId); // doing
+    }
+
+    // close trackContextMenu
+    trackContextMenu.classList.remove("show");
+});
+
+// handle playlist-select-modal item click
+playlistSelectModal.addEventListener("click", async (e) => {
+    // close modal when clicking overlay
+    if (!e.target.closest(".playlist-select-modal")) {
+        playlistSelectModal.classList.remove("show");
+    }
+
+    const playlistItem = e.target.closest(".playlist-item");
+    if (!playlistItem) return;
+
+    const playlistId = playlistItem.dataset.id;
+    const data = {
+        track_id: trackId,
+        position: 0,
+    };
+
+    try {
+        // add track (trackId) to playlist (playlistId)
+        const { message, playlist_track } = await httpRequest.post(
+            `playlists/${playlistId}/tracks`,
+            data
+        );
+        console.log(message); // show toast this
+
+        // re-render sidebar
+        await reRenderSidebar();
+
+        // show toast
+    } catch (error) {
+        console.dir(error);
+        console.error("Failed to add this track to playlist: ", error.message);
+        // show toast : error.response.error.message
+    } finally {
+        // close modal
+        playlistSelectModal.classList.remove("show");
+    }
+});
+
+// close modal with "Escape" key
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && playlistSelectModal.classList.contains("show")) {
+        playlistSelectModal.classList.remove("show");
+    }
+});
 
 // ==================================================
 // ====== modify playlist + upload cover image ======
@@ -1913,6 +2070,7 @@ playlistCoverInput.addEventListener("change", async () => {
 const playlistFollowBtn = $(".playlist-section .follow-btn");
 const artistFollowBtn = $(".artist-section .follow-btn");
 
+// click follow/unfollow button in playlist page
 playlistFollowBtn.addEventListener("click", async (e) => {
     const playlistSection = e.target.closest(".playlist-section");
     const playlistId = playlistSection.dataset.id;
@@ -1933,6 +2091,7 @@ playlistFollowBtn.addEventListener("click", async (e) => {
     }
 });
 
+// click follow/unfollow button in artist page
 artistFollowBtn.addEventListener("click", async (e) => {
     const artistSection = e.target.closest(".artist-section");
     const artistId = artistSection.dataset.id;
@@ -1947,7 +2106,6 @@ artistFollowBtn.addEventListener("click", async (e) => {
         } else {
             await handleFollowArtist(artistId);
         }
-        // doing
     } catch (error) {
         console.dir(error);
         console.error("Failed to follow/unfollow artist: ", error.message);

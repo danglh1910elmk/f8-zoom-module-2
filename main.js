@@ -476,9 +476,8 @@ function renderSidebar(list) {
             }">
                     <img
                         src="${
-                            item.image_url
-                                ? item.image_url
-                                : "placeholder.svg?height=48&width=48"
+                            item.image_url ||
+                            "placeholder.svg?height=48&width=48"
                         }"
                         alt="${title}"
                         class="item-image"
@@ -983,9 +982,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                         <div class="hit-card-cover">
                             <img
                                 src=${
-                                    track.image_url
-                                        ? track.image_url
-                                        : "placeholder.svg?height=160&width=160"
+                                    track.image_url ||
+                                    "placeholder.svg?height=160&width=160"
                                 }
                                 alt=${escapeHTML(track.title)}
                             />
@@ -1026,7 +1024,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 async function fetchAndRenderPlaylist(playlistId) {
-    const playlistImage = $(".playlist-image");
+    const editImageBtn = $(".edit-image-btn");
     const playlistStatus = $(".playlist-status");
     const playlistHeading = $(".playlist-heading");
     const followBtn = $(".playlist-section .follow-btn");
@@ -1042,9 +1040,14 @@ async function fetchAndRenderPlaylist(playlistId) {
 
         // update elements in playlist UI
         // update image source
-        playlistImage.src = playlist.image_url
-            ? playlist.image_url
-            : "placeholder.svg";
+        if (playlist.name === "Liked Songs") {
+            editImageBtn.innerHTML = `<div class="item-icon item-icon-full liked-songs">
+                                        <i class="fas fa-heart"></i>
+                                    </div>`;
+        } else {
+            const imageUrl = playlist.image_url || "placeholder.svg";
+            editImageBtn.innerHTML = `<img src="${imageUrl}" alt="" class="playlist-image">`;
+        }
 
         // update playlist status (public/private)
         playlistStatus.textContent = playlist.is_public
@@ -1106,9 +1109,7 @@ async function fetchAndRenderArtist(artistId) {
 
         // update elements in playlist UI
         // update bg image
-        heroImage.src = artist.background_image_url
-            ? artist.background_image_url
-            : "placeholder.svg";
+        heroImage.src = artist.background_image_url || "placeholder.svg";
 
         // update verified status
         if (artist.is_verified) {
@@ -1184,9 +1185,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                         <div class="artist-card-cover">
                             <img 
                                 src="${
-                                    artist.background_image_url
-                                        ? artist.background_image_url
-                                        : "placeholder.svg?height=160&width=160"
+                                    artist.background_image_url ||
+                                    "placeholder.svg?height=160&width=160"
                                 }"
                                 alt="${escapeHTML(artist.name)}"
                             />
@@ -2373,9 +2373,9 @@ main account:
 
 /*
 todo: 
-- modify Liked Songs cover image
 - search
 - sync play-btn-large icon with play/pause icon
 - modify hits section
 - fullscreen
+- toast
 */

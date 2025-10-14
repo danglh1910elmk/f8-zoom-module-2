@@ -11,7 +11,10 @@ const playlistSection = $(".playlist-section");
 const libraryContentContainer = $(".library-content");
 
 const playlistPlayBtn = $(".playlist-controls .play-btn-large");
+const playlistPlayBtnIcon = $(".playlist-controls .play-btn-large i");
 const artistPlayBtn = $(".artist-controls .play-btn-large");
+const artistPlayBtnIcon = $(".artist-controls .play-btn-large i");
+
 const audioElement = $(".audio");
 
 const REPLAY_THRESHOLD = 2;
@@ -1084,6 +1087,21 @@ async function fetchAndRenderPlaylist(playlistId) {
 
         console.log(tracks);
 
+        // để đồng bộ icon của playPauseBtn và playlistPlayBtn/artistPlayBtn
+        // change playlistPlayBtn icon based on audioElement play/pause state
+        if (currentSongListId === nextSongListId) {
+            if (audioElement.paused) {
+                playlistPlayBtnIcon.classList.remove("fa-pause");
+                playlistPlayBtnIcon.classList.add("fa-play");
+            } else {
+                playlistPlayBtnIcon.classList.remove("fa-play");
+                playlistPlayBtnIcon.classList.add("fa-pause");
+            }
+        } else {
+            playlistPlayBtnIcon.classList.add("fa-play");
+            playlistPlayBtnIcon.classList.remove("fa-pause");
+        }
+
         renderTrackList(tracks, playlistId);
     } catch (error) {
         console.dir(error);
@@ -1143,6 +1161,21 @@ async function fetchAndRenderArtist(artistId) {
         nextSongListId = artistId;
 
         console.log(tracks);
+
+        // để đồng bộ icon của playPauseBtn và playlistPlayBtn/artistPlayBtn
+        // change artistPlayBtnIcon icon based on audioElement play/pause state
+        if (currentSongListId === nextSongListId) {
+            if (audioElement.paused) {
+                artistPlayBtnIcon.classList.remove("fa-pause");
+                artistPlayBtnIcon.classList.add("fa-play");
+            } else {
+                artistPlayBtnIcon.classList.remove("fa-play");
+                artistPlayBtnIcon.classList.add("fa-pause");
+            }
+        } else {
+            artistPlayBtnIcon.classList.add("fa-play");
+            artistPlayBtnIcon.classList.remove("fa-pause");
+        }
 
         renderTrackList(tracks, artistId);
     } catch (error) {
@@ -1236,6 +1269,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             currentIndex = 0;
             currentSongList = nextSongList;
             currentSongListId = nextSongListId;
+
+            if (isShuffled) {
+                unplayedSongIndexes = createArray(currentSongList.length);
+                // shuffle
+                shuffleArray(unplayedSongIndexes);
+            }
+
             loadRenderAndPlay();
         }
     });
@@ -1290,7 +1330,6 @@ function removeElementFromUnplayedSongIndexes(element) {
 function renderTrackList(tracks, trackListId) {
     const container = document.getElementById(trackListId);
     if (!container) {
-        console.error("Cannot find container");
         return;
     }
 
@@ -1503,14 +1542,49 @@ playPauseBtn.addEventListener("click", () => {
     }
 });
 
+// doing
+const playBtnIcons = $$(".play-btn-large i"); // playlistPlayBtn or artistPlayBtn
+
 audioElement.addEventListener("play", () => {
     playPauseBtnIcon.classList.remove("fa-play");
     playPauseBtnIcon.classList.add("fa-pause");
+
+    // to synchronize the icons of playPauseBtn and playlistPlayBtn/artistPlayBtn
+    // để đồng bộ icon của playPauseBtn và playlistPlayBtn/artistPlayBtn
+    const currentSong = currentSongList[currentIndex];
+    const isFromPlaylist = !!currentSong.playlist_id; // mục đích để xác định xem cần thay đổi playlistPlayBtn hay artistPlayBtn
+
+    // thực hiện đồng bộ nếu songList đang phát là songList đang nhìn thấy
+    if (currentSongListId === nextSongListId) {
+        if (isFromPlaylist) {
+            playlistPlayBtnIcon.classList.remove("fa-play");
+            playlistPlayBtnIcon.classList.add("fa-pause");
+        } else {
+            artistPlayBtnIcon.classList.remove("fa-play");
+            artistPlayBtnIcon.classList.add("fa-pause");
+        }
+    }
 });
 
 audioElement.addEventListener("pause", () => {
     playPauseBtnIcon.classList.remove("fa-pause");
     playPauseBtnIcon.classList.add("fa-play");
+
+    // to synchronize the icons of playPauseBtn and playlistPlayBtn/artistPlayBtn
+    // để đồng bộ icon của playPauseBtn và playlistPlayBtn/artistPlayBtn
+    const currentSong = currentSongList[currentIndex];
+    const isFromPlaylist = !!currentSong.playlist_id; // mục đích để xác định xem cần thay đổi playlistPlayBtn hay artistPlayBtn
+
+    // thực hiện đồng bộ nếu songList đang phát là songList đang nhìn thấy
+    if (currentSongListId === nextSongListId) {
+        if (isFromPlaylist) {
+            playlistPlayBtnIcon.classList.remove("fa-pause");
+            playlistPlayBtnIcon.classList.add("fa-play");
+        } else {
+            artistPlayBtnIcon.classList.remove("fa-pause");
+            artistPlayBtnIcon.classList.add("fa-play");
+        }
+    }
 });
 
 audioElement.addEventListener("ended", () => {
@@ -1724,6 +1798,8 @@ function openContextMenu(e, contextMenu) {
 
 // handle play-btn-large click
 function handlePlayBtnClick() {
+    const playBtnIcon = this.querySelector("i");
+
     // songList đang xem không phải songList đang phát
     if (currentSongListId !== nextSongListId) {
         if (!nextSongList.length) return;
@@ -1731,14 +1807,33 @@ function handlePlayBtnClick() {
         currentIndex = 0;
         currentSongList = nextSongList;
         currentSongListId = nextSongListId;
+
+        if (isShuffled) {
+            unplayedSongIndexes = createArray(currentSongList.length);
+            // shuffle
+            shuffleArray(unplayedSongIndexes);
+        }
+
         loadRenderAndPlay();
 
-        // change icon
+        // để đồng bộ icon của playPauseBtn và playlistPlayBtn/artistPlayBtn
+        // change playBtn icon
+        playBtnIcon.classList.remove("fa-play");
+        playBtnIcon.classList.add("fa-pause");
     }
     // songList đang xem là songList đang phát
     else {
         playPauseBtn.click();
-        // change icon
+
+        // để đồng bộ icon của playPauseBtn và playlistPlayBtn/artistPlayBtn
+        // change playBtn icon based on audioElement play/pause state
+        if (audioElement.paused) {
+            playBtnIcon.classList.add("fa-play");
+            playBtnIcon.classList.remove("fa-pause");
+        } else {
+            playBtnIcon.classList.remove("fa-play");
+            playBtnIcon.classList.add("fa-pause");
+        }
     }
 }
 
@@ -1757,6 +1852,12 @@ function handleSongListDblclick(e) {
 
     currentSongList = nextSongList;
     currentSongListId = nextSongListId;
+
+    if (isShuffled) {
+        unplayedSongIndexes = createArray(currentSongList.length);
+        // shuffle
+        shuffleArray(unplayedSongIndexes);
+    }
 
     loadRenderAndPlay();
 }

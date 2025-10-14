@@ -1706,7 +1706,7 @@ const playlistSelectModalList = $(".playlist-select-modal-list");
 
 let currentTrackId; // lưu lại track_id mỗi khi chuột phải vào 1 track
 
-function openTrackContextMenu() {
+function openPlaylistSelectModal() {
     playlistSelectModal.classList.add("show");
     fetchAndRenderPlaylistSelectModal();
 }
@@ -1765,38 +1765,48 @@ async function removeTrackFromPlaylist(playlistId, trackId) {
     }
 }
 
-// right click vào track ở playlist page
-$(".playlist-section .track-list").addEventListener("contextmenu", (e) => {
+function openTrackContextMenu(e) {
     // close other context menus first
     $(".context-menu.show")?.classList?.remove("show");
 
-    const trackItem = e.target.closest(".track-item ");
+    const trackItem = e.target.closest(".track-item");
     if (!trackItem) return;
 
     currentTrackId = trackItem.dataset.trackId; // lưu lại trackId mỗi khi chuột phải vào 1 track
 
-    // hiện option: remove from this playlist
-    $(".menu-item.remove-from-playlist").classList.add("show");
+    // xác định xem đây là playlist hay artist page
+    const playlistSection = e.target.closest(".playlist-section"); // -> khác null nghĩa là playlist page, = null là artist page
+
+    // nếu là playlist page
+    if (playlistSection) {
+        // hiện option: remove from this playlist
+        $(".menu-item.remove-from-playlist").classList.add("show");
+    }
+    // nếu là artist page
+    else {
+        // ẩn option: remove from this playlist
+        $(".menu-item.remove-from-playlist").classList.remove("show");
+    }
 
     // open trackContextMenu
     openContextMenu(e, trackContextMenu);
+}
+
+// right click vào track ở playlist/artist page
+$$(".track-list").forEach((trackList) => {
+    trackList.addEventListener("contextmenu", openTrackContextMenu);
 });
 
-// right click vào track ở artist page
-$(".artist-section .track-list").addEventListener("contextmenu", (e) => {
-    // close other context menus first
-    $(".context-menu.show")?.classList?.remove("show");
+// handle track Menu Button (3 dots, ellipsis) click
+$$(".track-list").forEach((trackList) => {
+    trackList.addEventListener("click", (e) => {
+        e.stopPropagation(); // have to stop propagation because 'document' has a click event handler to close contextmenu when clicking outside
 
-    const trackItem = e.target.closest(".track-item ");
-    if (!trackItem) return;
+        const menuBtn = e.target.closest(".track-menu-btn");
+        if (!menuBtn) return;
 
-    currentTrackId = trackItem.dataset.trackId; // lưu lại trackId mỗi khi chuột phải vào 1 track
-
-    // ẩn option: remove from this playlist
-    $(".menu-item.remove-from-playlist").classList.remove("show");
-
-    // open trackContextMenu
-    openContextMenu(e, trackContextMenu);
+        openTrackContextMenu(e);
+    });
 });
 
 // click on menu-item of trackContextMenu
@@ -1804,10 +1814,13 @@ trackContextMenu.addEventListener("click", (e) => {
     const menuItem = e.target.closest(".menu-item");
     if (!menuItem) return;
 
+    // click 'Add to playlist' option
     if (menuItem.classList.contains("add-to-playlist")) {
         // open playlist-select-modal
-        openTrackContextMenu();
-    } else if (menuItem.classList.contains("remove-from-playlist")) {
+        openPlaylistSelectModal();
+    }
+    // click 'Remove from playlist' option
+    else if (menuItem.classList.contains("remove-from-playlist")) {
         removeTrackFromPlaylist(nextSongListId, currentTrackId); // nextSongListId chính là playlistId của playlist đang trong 'view'
     }
 
@@ -2289,4 +2302,14 @@ main account:
   "bio": "something",
   "country": "US"
 }
+*/
+
+/*
+todo: 
+- shuffle
+- modify Liked Songs cover image
+- search
+- sync play-btn-large icon with play/pause icon
+- modify hits section
+- fullscreen
 */

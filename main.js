@@ -588,6 +588,10 @@ document.addEventListener("DOMContentLoaded", async function () {
     repeatBtn.classList.toggle("active", isRepeated);
     isShuffled = localStorage.getItem("isShuffled") === "true";
     shuffleBtn.classList.toggle("active", isShuffled);
+    // nếu shuffle đang bật thì xáo trộn mảng
+    if (isShuffled) {
+        shuffleArray(unplayedSongIndexes);
+    }
 
     // update volume
     audioElement.volume = +localStorage.getItem("volumeValue");
@@ -1237,7 +1241,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 });
 
-// ==== play music ===================
+// =================== music player ===================
 const playerImage = $(".player-image");
 const playerTitle = $(".player-title");
 const playerArtist = $(".player-artist");
@@ -1260,6 +1264,28 @@ const volumeIcon = $(".volume-container button i");
 
 let isSeeking = false;
 let isAdjustingVolume = false;
+let unplayedSongIndexes = [];
+
+function createArray(n) {
+    return Array(n)
+        .fill(0)
+        .map((_, i) => i);
+}
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+function removeElementFromUnplayedSongIndexes(element) {
+    const index = unplayedSongIndexes.indexOf(element);
+    if (index !== -1) {
+        unplayedSongIndexes.splice(index, 1);
+    }
+}
 
 function renderTrackList(tracks, trackListId) {
     const container = document.getElementById(trackListId);
@@ -1419,6 +1445,9 @@ function loadCurrentSong() {
 
 function playSong() {
     audioElement.play();
+
+    // remove currentIndex from unplayedSongIndexes array
+    removeElementFromUnplayedSongIndexes(currentIndex);
 }
 
 function loadRenderAndPlay() {
@@ -1428,9 +1457,38 @@ function loadRenderAndPlay() {
 }
 
 function switchSong(direction) {
-    currentIndex =
-        (currentIndex + direction + currentSongList.length) %
-        currentSongList.length;
+    if (isShuffled) {
+        // bật shuffle thì phát các bài có index trong unplayedSongIndexes
+        if (unplayedSongIndexes.length) {
+            // gán currentIndex = phần tử đầu tiên của unplayedSongIndexes, xong rồi xóa luôn
+            currentIndex = unplayedSongIndexes[0];
+
+            // xóa phần tử đầu tiên của mảng unplayedSongIndexes
+            unplayedSongIndexes.shift();
+        } else {
+            // khi unplayedSongIndexes.length === 0 --> tất cả đã được phát
+
+            // reset mảng unplayedSongIndexes
+            unplayedSongIndexes = createArray(currentSongList.length);
+
+            // xóa phần tử currentIndex hiện tại khỏi mảng unplayedSongIndexes
+            removeElementFromUnplayedSongIndexes(currentIndex);
+
+            // shuffle
+            shuffleArray(unplayedSongIndexes);
+
+            // gán currentIndex = phần tử đầu tiên của unplayedSongIndexes, xong rồi xóa luôn
+            currentIndex = unplayedSongIndexes[0];
+            unplayedSongIndexes.shift();
+
+            // xử lý trường hợp chỉ có 1 bài hát
+            if (currentSongList.length === 1) currentIndex = 0;
+        }
+    } else {
+        currentIndex =
+            (currentIndex + direction + currentSongList.length) %
+            currentSongList.length;
+    }
 
     loadRenderAndPlay();
 }
@@ -1541,6 +1599,15 @@ repeatBtn.addEventListener("click", function () {
 shuffleBtn.addEventListener("click", function () {
     isShuffled = !isShuffled;
     this.classList.toggle("active", isShuffled);
+
+    if (isShuffled) {
+        // enabled
+        shuffleArray(unplayedSongIndexes);
+    } else {
+        // disabled
+        // reset unplayedSongIndexes array
+        unplayedSongIndexes = createArray(currentSongList.length);
+    }
 
     // save
     localStorage.setItem("isShuffled", isShuffled);
@@ -2306,7 +2373,6 @@ main account:
 
 /*
 todo: 
-- shuffle
 - modify Liked Songs cover image
 - search
 - sync play-btn-large icon with play/pause icon

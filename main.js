@@ -2628,6 +2628,15 @@ $$(".go-home-btn").forEach((button) => {
     });
 });
 
+// ======= fullscreen =======
+$(".full-screen-btn").addEventListener("click", () => {
+    if (document.fullscreenElement) {
+        document.exitFullscreen();
+    } else {
+        document.documentElement.requestFullscreen();
+    }
+});
+
 // ======= tooltip =======
 $$(".tooltip").forEach((ele) => {
     const tooltipText = ele.querySelector(".tooltip-text");

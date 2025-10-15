@@ -849,7 +849,7 @@ async function handleFollowPlaylist(playlistId) {
 
         // nếu nằm trong 'view' thì re-render playlist page
         if (nextSongListId === playlistId) {
-            await fetchAndRenderPlaylist(playlistId);
+            await fetchAndRenderPlaylistPage(playlistId);
         }
 
         // show toast success
@@ -881,7 +881,7 @@ async function handleUnfollowPlaylist(playlistId) {
 
         // nếu nằm trong 'view' thì re-render playlist page
         if (nextSongListId === playlistId) {
-            await fetchAndRenderPlaylist(playlistId);
+            await fetchAndRenderPlaylistPage(playlistId);
         }
 
         // show toast success
@@ -935,7 +935,7 @@ async function handleFollowArtist(artistId) {
 
         // nếu nằm trong 'view' thì re-render artist page
         if (nextSongListId === artistId) {
-            await fetchAndRenderArtist(artistId);
+            await fetchAndRenderArtistPage(artistId);
         }
 
         // show toast
@@ -960,7 +960,7 @@ async function handleUnfollowArtist(artistId) {
 
         // nếu nằm trong 'view' thì re-render artist page
         if (nextSongListId === artistId) {
-            await fetchAndRenderArtist(artistId);
+            await fetchAndRenderArtistPage(artistId);
         }
 
         // show toast
@@ -973,57 +973,70 @@ async function handleUnfollowArtist(artistId) {
     }
 }
 
-// Today's biggest hits section - trending tracks
-document.addEventListener("DOMContentLoaded", async () => {
-    function renderTrendingTracks(tracks) {
-        const html = tracks
-            .map((track) => {
-                return `<div class="hit-card">
-                        <div class="hit-card-cover">
+function renderPlaylistCards(playlists, container) {
+    const playlistsHtml = playlists
+        .map((playlist) => {
+            return `<div class="playlist-card" data-playlist-id="${
+                playlist.id
+            }">
+                        <div class="playlist-card-cover">
                             <img
-                                src=${
-                                    track.image_url ||
+                                src="${
+                                    playlist.image_url ||
                                     "placeholder.svg?height=160&width=160"
-                                }
-                                alt=${escapeHTML(track.title)}
+                                }"
+                                alt="playlist cover image"
                             />
-                            <button class="hit-play-btn">
+                            <button class="playlist-play-btn">
                                 <i class="fas fa-play"></i>
                             </button>
                         </div>
-                        <div class="hit-card-info">
-                            <h3 class="hit-card-title">
-                                ${escapeHTML(track.title)}
+                        <div class="playlist-card-info">
+                            <h3 class="playlist-card-name">
+                                ${escapeHTML(
+                                    playlist.title || playlist.name || ""
+                                )}
                             </h3>
-                            <p class="hit-card-artist">
-                                ${escapeHTML(track.artist_name)}
+                            <p class="playlist-card-type">
+                                Playlist
                             </p>
+                            <p class="playlist-card-author">${escapeHTML(
+                                playlist.user_display_name ||
+                                    playlist.user_username ||
+                                    playlist.subtitle ||
+                                    ""
+                            )}</p>
                         </div>
                     </div>`;
-            })
-            .join("");
-        hitsGrid.innerHTML = html;
-    }
+        })
+        .join("");
+    container.innerHTML = playlistsHtml;
+}
 
-    async function fetchAndRenderTrendingTracks() {
+// Today's biggest hits section
+document.addEventListener("DOMContentLoaded", async () => {
+    async function fetchAndRenderHitsSection() {
         try {
-            const { tracks, pagination } = await httpRequest.get(
-                "tracks/trending?limit=8"
+            const { playlists, pagination } = await httpRequest.get(
+                `playlists?limit=20&offset=0`
             );
 
-            renderTrendingTracks(tracks);
+            renderPlaylistCards(playlists, hitsGrid);
         } catch (error) {
-            console.error("Cannot fetch Trending Tracks!");
             console.dir(error);
+            console.error("Failed to fetch playlists:", error.message);
         }
     }
 
     const hitsGrid = $(".hits-grid");
 
-    await fetchAndRenderTrendingTracks();
+    await fetchAndRenderHitsSection();
+
+    hitsGrid.addEventListener("click", handlePlaylistsContainerClick);
 });
 
-async function fetchAndRenderPlaylist(playlistId) {
+// fetch & render playlist page
+async function fetchAndRenderPlaylistPage(playlistId) {
     const editImageBtn = $(".edit-image-btn");
     const playlistStatus = $(".playlist-status");
     const playlistHeading = $(".playlist-heading");
@@ -1105,7 +1118,8 @@ async function fetchAndRenderPlaylist(playlistId) {
     }
 }
 
-async function fetchAndRenderArtist(artistId) {
+// fetch & render artist page
+async function fetchAndRenderArtistPage(artistId) {
     // get DOM elements
     const heroImage = $(".hero-image");
     const verifiedIcon = $(".verified-icon");
@@ -1189,7 +1203,7 @@ async function handlePlaylistClick(playlistId) {
     popularArtistsSection.classList.remove("show");
     artistSection.classList.remove("show");
 
-    await fetchAndRenderPlaylist(playlistId);
+    await fetchAndRenderPlaylistPage(playlistId);
 }
 
 async function handleArtistClick(artistId) {
@@ -1201,7 +1215,7 @@ async function handleArtistClick(artistId) {
     popularArtistsSection.classList.remove("show");
     playlistSection.classList.remove("show");
 
-    await fetchAndRenderArtist(artistId);
+    await fetchAndRenderArtistPage(artistId);
 }
 
 function renderArtistCards(artists, container) {
@@ -1890,7 +1904,7 @@ async function removeTrackFromPlaylist(playlistId, trackId) {
         console.log(message);
 
         // re-render playlist page
-        await fetchAndRenderPlaylist(playlistId);
+        await fetchAndRenderPlaylistPage(playlistId);
 
         // re-render sidebar
         await reRenderSidebar();
@@ -2189,8 +2203,8 @@ playlistEditDetailsSaveBtn.addEventListener("click", async (e) => {
         // re-render sidebar
         await reRenderSidebar();
 
-        // re-render playlist
-        await fetchAndRenderPlaylist(editPlaylistId);
+        // re-render playlist page
+        await fetchAndRenderPlaylistPage(editPlaylistId);
 
         // show toast success
     } catch (error) {
@@ -2206,6 +2220,12 @@ playlistEditDetailsSaveBtn.addEventListener("click", async (e) => {
         playlistCoverInput.value = ""; // Clear file input
         playlistPreviewImage.src = "";
     }
+});
+
+$(".playlist-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    playlistEditDetailsSaveBtn.click();
 });
 
 // hide error message when user types something
@@ -2407,35 +2427,7 @@ function renderSearchResultModal(query, results, totalResults) {
     }
 
     if (playlists.length) {
-        const playlistsHtml = playlists
-            .map((playlist) => {
-                return `<div class="playlist-card" data-playlist-id="${
-                    playlist.id
-                }">
-                        <div class="playlist-card-cover">
-                            <img
-                                src="${
-                                    playlist.image_url ||
-                                    "placeholder.svg?height=160&width=160"
-                                }"
-                                alt="playlist cover image"
-                            />
-                            <button class="playlist-play-btn">
-                                <i class="fas fa-play"></i>
-                            </button>
-                        </div>
-                        <div class="playlist-card-info">
-                            <h3 class="playlist-card-name">
-                                ${escapeHTML(playlist.title || "")}
-                            </h3>
-                            <p class="playlist-card-type">
-                                Playlist
-                            </p>
-                        </div>
-                    </div>`;
-            })
-            .join("");
-        searchPlaylistList.innerHTML = playlistsHtml;
+        renderPlaylistCards(playlists, searchPlaylistList);
         playlistSearchSection.classList.add("show");
     }
 
@@ -2555,6 +2547,8 @@ async function handlePlaylistsContainerClick(e) {
 
     // nếu click vào playlist play btn
     if (playlistCardPlayBtn) {
+        if (!nextSongList.length) return;
+
         currentIndex = 0;
         currentSongList = nextSongList;
         currentSongListId = nextSongListId;
@@ -2592,6 +2586,8 @@ async function handleArtistsContainerClick(e) {
     await handleArtistClick(artistId);
 
     if (artistCardPlayBtn) {
+        if (!nextSongList.length) return;
+
         currentIndex = 0;
         currentSongList = nextSongList;
         currentSongListId = nextSongListId;
@@ -2750,8 +2746,8 @@ main account:
 
 /*
 todo: 
+- liked songs img playlist select
 - sidebar search
-- modify hits section
 - fullscreen
 - toast
 - title

@@ -1567,6 +1567,15 @@ textarea.playlist-form-input {
     font-weight: 400;
 }
 
+.playlist-card-author {
+    font-size: 12px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 400;
+}
+
 /* tooltip */
 .tooltip {
     position: relative;

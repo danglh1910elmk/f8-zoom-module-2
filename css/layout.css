@@ -91,6 +91,8 @@
     display: flex;
     justify-content: flex-start;
     max-width: 420px;
+
+    position: relative;
 }
 
 .header-actions {

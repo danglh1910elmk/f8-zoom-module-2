@@ -261,6 +261,10 @@
     .user-name {
         display: none;
     }
+
+    .search-result-modal {
+        width: 450px;
+    }
 }
 
 /* Small Mobile */
@@ -320,6 +324,10 @@
     .following-btn {
         font-size: 12px;
         padding: var(--spacing-xs) var(--spacing-sm);
+    }
+
+    .search-result-modal {
+        width: 400px;
     }
 }
 

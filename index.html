@@ -137,7 +137,7 @@
                             <div class="search-input-wrapper tooltip">
                                 <i class="fas fa-search search-icon"></i>
                                 <input
-                                    type="text"
+                                    type="search"
                                     placeholder="What do you want to play?"
                                     class="search-input"
                                 />
@@ -149,6 +149,113 @@
                                 </span>
                             </div>
                         </div>
+                        <!-- search result modal -->
+                        <div class="search-result-modal">
+                            <!-- show -->
+                            <div class="search-empty-wrapper">
+                                <p class="search-empty-title">
+                                    Couldn't find 'something'
+                                </p>
+                                <p class="search-empty-hint">
+                                    Try searching again using a different
+                                    spelling or keyword.
+                                </p>
+                            </div>
+
+                            <p class="search-total-results">Total results:</p>
+
+                            <!-- track results -->
+                            <div class="search-section track-search-section">
+                                <h2 class="search-section-title">Tracks:</h2>
+                                <div class="search-track-list">
+                                    <div class="track-item playing">
+                                        <div class="track-image">
+                                            <img
+                                                src="placeholder.svg?height=40&width=40"
+                                                alt="Track cover image"
+                                            />
+                                        </div>
+                                        <div class="track-info">
+                                            <div
+                                                class="track-name playing-text"
+                                            >
+                                                Title
+                                            </div>
+                                        </div>
+                                        <div class="track-duration">4:12</div>
+                                        <button class="track-menu-btn">
+                                            <i class="fas fa-ellipsis-h"></i>
+                                        </button>
+                                    </div>
+
+                                    <div class="track-item">
+                                        <div class="track-image">
+                                            <img
+                                                src="placeholder.svg?height=40&width=40"
+                                                alt="Track cover image"
+                                            />
+                                        </div>
+                                        <div class="track-info">
+                                            <div class="track-name">Title</div>
+                                        </div>
+                                        <div class="track-duration">3:26</div>
+                                        <button class="track-menu-btn">
+                                            <i class="fas fa-ellipsis-h"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Playlist results -->
+                            <div class="search-section playlist-search-section">
+                                <h2 class="search-section-title">Playlists:</h2>
+                                <div class="search-playlist-list">
+                                    <div class="playlist-card">
+                                        <div class="playlist-card-cover">
+                                            <img
+                                                src="placeholder.svg?height=160&width=160"
+                                                alt="playlist cover image"
+                                            />
+                                            <button class="playlist-play-btn">
+                                                <i class="fas fa-play"></i>
+                                            </button>
+                                        </div>
+                                        <div class="playlist-card-info">
+                                            <h3 class="playlist-card-name">
+                                                Name
+                                            </h3>
+                                            <p class="playlist-card-type">
+                                                Playlist
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- artist results -->
+                            <div class="search-section artist-search-section">
+                                <h2 class="search-section-title">Artists:</h2>
+                                <div class="search-artist-list">
+                                    <div class="artist-card">
+                                        <div class="artist-card-cover">
+                                            <img
+                                                src="placeholder.svg?height=160&width=160"
+                                                alt="Artist cover image"
+                                            />
+                                            <button class="artist-play-btn">
+                                                <i class="fas fa-play"></i>
+                                            </button>
+                                        </div>
+                                        <div class="artist-card-info">
+                                            <h3 class="artist-card-name">
+                                                Name
+                                            </h3>
+                                            <p class="artist-card-type">
+                                                Artist
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="header-actions">
                         <div class="auth-buttons">
@@ -158,13 +265,21 @@
                         <div class="user-menu">
                             <div class="user-info">
                                 <span id="user-name" class="user-name"></span>
-                                <button class="user-avatar" id="userAvatar">
-                                    <img
-                                        id="user-avatar-img"
-                                        src="placeholder.svg?height=32&width=32"
-                                        alt="User Avatar"
-                                    />
-                                </button>
+                                <div class="tooltip">
+                                    <button class="user-avatar" id="userAvatar">
+                                        <img
+                                            id="user-avatar-img"
+                                            src="placeholder.svg?height=32&width=32"
+                                            alt="User Avatar"
+                                        />
+                                    </button>
+                                    <span
+                                        class="tooltip-text bottom"
+                                        style="bottom: -80%; translate: -70%"
+                                    >
+                                        User Avatar
+                                    </span>
+                                </div>
                             </div>
                             <div class="user-dropdown" id="userDropdown">
                                 <div class="dropdown-item" id="logoutBtn">

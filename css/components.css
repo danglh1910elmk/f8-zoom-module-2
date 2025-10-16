@@ -221,14 +221,7 @@
     color: var(--text-primary);
 }
 
-.library-search-input {
-    width: 100%;
-    color: var(--text-primary);
-    font-size: 14px;
-    background: var(--bg-tertiary);
-    padding: var(--spacing-sm) var(--spacing-md);
-    border-radius: var(--radius-xl);
-
+.library-search-input-wrapper {
     position: absolute;
     left: 0;
     bottom: -105%;
@@ -239,14 +232,35 @@
     transition: 0.3s ease;
 }
 
-.library-search-input.show {
+.library-search-input-wrapper.show {
     opacity: 1;
     visibility: visible;
+}
+
+.library-search-input {
+    width: 100%;
+    color: var(--text-primary);
+    font-size: 14px;
+    background: var(--bg-tertiary);
+    padding: var(--spacing-sm) var(--spacing-lg) var(--spacing-sm)
+        var(--spacing-md);
+    border-radius: var(--radius-xl);
 }
 
 .library-search-input:focus {
     background-color: var(--bg-hover);
     outline: 1px solid var(--text-primary);
+}
+
+.input-clear-btn {
+    color: var(--text-secondary);
+
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    translate: 0 -50%;
+
+    cursor: pointer;
 }
 
 .sort-dropdown {
@@ -1606,24 +1620,34 @@ textarea.playlist-form-input {
 }
 
 /* toast */
-.toast {
+.toast-container {
     position: fixed;
-    z-index: 100;
-    top: 50px;
-    left: 50%;
-    translate: -50%;
+    z-index: 1000;
+    top: 12%;
+    right: 5%;
+
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.toast {
+    /* position: fixed;
+    z-index: 1000;
+    top: 12%;
+    right: 5%; */
 
     background: #666;
     color: var(--text-primary);
-    width: max-content;
-    /* width: 300px; */
+    width: 300px;
     border-radius: 7px;
+    border-left: 8px solid transparent;
     padding: 10px 15px;
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
 
     opacity: 0;
     visibility: hidden;
-    transition: 0.4s ease;
+    transition: 0.5s ease;
 }
 
 .toast.show {

@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Đen - Spotify</title>
+        <title>Spotify</title>
         <!-- Font Awesome CDN -->
         <link
             rel="stylesheet"
@@ -57,11 +57,14 @@
                                 <i class="fas fa-list"></i>
                             </button>
                         </div>
-                        <input
-                            type="text"
-                            class="library-search-input"
-                            placeholder="Search in Your Library"
-                        />
+                        <div class="library-search-input-wrapper">
+                            <input
+                                type="text"
+                                class="library-search-input"
+                                placeholder="Search in Your Library"
+                            />
+                            <i class="input-clear-btn fa-solid fa-xmark"></i>
+                        </div>
                         <ul class="sort-dropdown">
                             <!-- active -->
                             <li class="dropdown-item active">
@@ -1047,8 +1050,10 @@
         </div>
 
         <!-- Toast -->
-        <div class="toast">
-            <p class="toast-content">Log in successfully</p>
+        <div class="toast-container">
+            <!-- <div class="toast">
+                <p class="toast-content">Log in successfully</p>
+            </div> -->
         </div>
 
         <!-- DOMPurify library -->

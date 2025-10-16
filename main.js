@@ -3,6 +3,7 @@ import httpRequest from "./utils/httpRequest.js";
 const $ = document.querySelector.bind(document);
 const $$ = document.querySelectorAll.bind(document);
 
+const siteTitle = $("title");
 const hitsSection = $(".hits-section");
 const popularArtistsSection = $(".popular-artists-section");
 const artistSection = $(".artist-section");
@@ -72,11 +73,10 @@ document.addEventListener("DOMContentLoaded", function () {
         openModal();
         signupEmailInput.focus();
 
-        // remove before flight
         signupEmailInput.value = generateEmail();
         $("#signupPassword").value = generatePass();
         // $("#signupEmail").value = "@gmail.com";
-        // $("#signupPassword").value = "Password123";
+        // $("#signupPassword").value = "";
     });
 
     // Open modal with Login form when clicking Login button
@@ -85,9 +85,6 @@ document.addEventListener("DOMContentLoaded", function () {
         openModal();
         loginEmailInput.focus();
 
-        // remove before flight
-        // loginEmailInput.value = generateEmail();
-        // $("#loginPassword").value = generatePass();
         loginEmailInput.value = "xdd@gmail.com";
         $("#loginPassword").value = "Password123";
     });
@@ -204,6 +201,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     await httpRequest.post("auth/register", credentials);
                 console.log("sign up user: ", user);
 
+                // show toast
+                showToast("Signed up successfully", true);
+
                 // save accessToken, refreshToken to localStorage
                 localStorage.setItem("accessToken", access_token);
                 localStorage.setItem("refreshToken", refresh_token);
@@ -260,6 +260,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     await httpRequest.post("auth/login", credentials);
 
                 console.log("login user: ", user);
+
+                // show toast
+                showToast("Logged in successfully", true);
 
                 // save user, accessToken, refreshToken to localStorage
                 localStorage.setItem("user", JSON.stringify(user));
@@ -378,6 +381,9 @@ document.addEventListener("DOMContentLoaded", function () {
             );
             console.log(message);
             console.log(details);
+
+            // show toast
+            showToast("Logged out successfully");
 
             // hide user-info
             userInfo.classList.remove("show");
@@ -547,6 +553,48 @@ async function fetchAndRenderSidebar(user, type = 3, sortMode = "recent") {
         renderSidebar(allItems);
     } catch (error) {
         console.dir(error);
+        console.error("Failed to fetch sidebar: ", error.message);
+    }
+}
+
+async function renderSidebarSearchedResults(
+    searchString,
+    type = 3,
+    sortMode = "recent"
+) {
+    let playlists = [],
+        artists = [],
+        allItems = [];
+
+    try {
+        if (type === 1) {
+            playlists = await fetchFollowedAndOwnedPlaylists();
+        } else if (type === 2) {
+            artists = await fetchFollowedArtists();
+        } else if (type === 3) {
+            playlists = await fetchFollowedAndOwnedPlaylists();
+            artists = await fetchFollowedArtists();
+        }
+
+        // combine
+        allItems = [...playlists, ...artists];
+
+        // filter - name hoặc user_username (nếu có) chứa searchString
+        allItems = allItems.filter((item) => {
+            return (
+                item.name.toLowerCase().includes(searchString) ||
+                item?.user_username?.toLowerCase()?.includes(searchString)
+            );
+        });
+
+        // sort handling
+        allItems = sortArray(allItems, sortMode);
+
+        // render
+        renderSidebar(allItems);
+    } catch (error) {
+        console.dir(error);
+        console.error("Failed to render sidebar: ", error.message);
     }
 }
 
@@ -557,7 +605,6 @@ async function reRenderSidebar() {
 }
 
 // INITIALIZE
-// lấy được thông tin user rồi hiển thị
 document.addEventListener("DOMContentLoaded", async function () {
     async function fetchUser() {
         try {
@@ -565,7 +612,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             return user;
         } catch (error) {
             console.dir(error);
-            console.error("Cannot fetch User!");
+            console.error("Failed to fetch User!");
 
             // display sign-in, sign-up buttons
             authButtons.classList.add("show");
@@ -644,14 +691,43 @@ document.addEventListener("DOMContentLoaded", async (e) => {
         if (sortDropdownBtn.classList.contains("sort-by-recent")) {
             addActiveClassToDropdownItem(dropdownItem);
             fetchAndRenderSidebar(user, type, "recent");
+
+            // nếu librarySearchInput đang hiển thị và đang có input trong đó
+            if (
+                librarySearchInputWrapper.classList.contains("show") &&
+                sidebarSearchString
+            ) {
+                renderSidebarSearchedResults(
+                    sidebarSearchString,
+                    type,
+                    "recent"
+                );
+            } else {
+                fetchAndRenderSidebar(user, type, "recent");
+            }
+
             sortBtnText.textContent = "Recents";
-            // save sortMode
+            // save config
             localStorage.setItem("sortMode", "recent");
         } else if (sortDropdownBtn.classList.contains("sort-by-alphabetical")) {
             addActiveClassToDropdownItem(dropdownItem);
-            fetchAndRenderSidebar(user, type, "alphabetical");
+
+            // nếu librarySearchInput đang hiển thị và đang có input trong đó
+            if (
+                librarySearchInputWrapper.classList.contains("show") &&
+                sidebarSearchString
+            ) {
+                renderSidebarSearchedResults(
+                    sidebarSearchString,
+                    type,
+                    "alphabetical"
+                );
+            } else {
+                fetchAndRenderSidebar(user, type, "alphabetical");
+            }
+
             sortBtnText.textContent = "Alphabetical";
-            // save sortMode
+            // save config
             localStorage.setItem("sortMode", "alphabetical");
         }
 
@@ -670,7 +746,16 @@ document.addEventListener("DOMContentLoaded", async (e) => {
             this.classList.remove("active");
 
             sortMode = localStorage.getItem("sortMode");
-            fetchAndRenderSidebar(user, 3, sortMode); // render both playlists and artists
+            // nếu librarySearchInput đang hiển thị và đang có input trong đó
+            if (
+                librarySearchInputWrapper.classList.contains("show") &&
+                sidebarSearchString
+            ) {
+                renderSidebarSearchedResults(sidebarSearchString, 3, sortMode);
+            } else {
+                fetchAndRenderSidebar(user, 3, sortMode); // render both playlists and artists
+            }
+            // save config
             localStorage.setItem("type", 3);
         }
         // activate playlistsFilterBtn
@@ -679,7 +764,15 @@ document.addEventListener("DOMContentLoaded", async (e) => {
             artistsFilterBtn.classList.remove("active");
 
             sortMode = localStorage.getItem("sortMode");
-            fetchAndRenderSidebar(user, 1, sortMode); // render playlists only
+            if (
+                librarySearchInputWrapper.classList.contains("show") &&
+                sidebarSearchString
+            ) {
+                renderSidebarSearchedResults(sidebarSearchString, 1, sortMode);
+            } else {
+                fetchAndRenderSidebar(user, 1, sortMode); // render playlists only
+            }
+            // save config
             localStorage.setItem("type", 1);
         }
     });
@@ -694,7 +787,15 @@ document.addEventListener("DOMContentLoaded", async (e) => {
             this.classList.remove("active");
 
             sortMode = localStorage.getItem("sortMode");
-            fetchAndRenderSidebar(user, 3, sortMode); // render both playlists and artists
+            if (
+                librarySearchInputWrapper.classList.contains("show") &&
+                sidebarSearchString
+            ) {
+                renderSidebarSearchedResults(sidebarSearchString, 3, sortMode);
+            } else {
+                fetchAndRenderSidebar(user, 3, sortMode); // render both playlists and artists
+            }
+            // save config
             localStorage.setItem("type", 3);
         }
         // activate artistsFilterBtn
@@ -703,7 +804,15 @@ document.addEventListener("DOMContentLoaded", async (e) => {
             playlistsFilterBtn.classList.remove("active");
 
             sortMode = localStorage.getItem("sortMode");
-            fetchAndRenderSidebar(user, 2, sortMode); // render artists only
+            if (
+                librarySearchInputWrapper.classList.contains("show") &&
+                sidebarSearchString
+            ) {
+                renderSidebarSearchedResults(sidebarSearchString, 2, sortMode);
+            } else {
+                fetchAndRenderSidebar(user, 2, sortMode); // render both playlists and artists
+            }
+            // save config
             localStorage.setItem("type", 2);
         }
     });
@@ -750,11 +859,13 @@ document.addEventListener("DOMContentLoaded", async (e) => {
             await handlePlaylistClick(playlist.id);
 
             // show toast
+            showToast("Playlist created successfully", true);
         } catch (error) {
             console.dir(error);
             console.error("Failed to create new playlist: ", error.message);
 
             // show toast
+            showToast("Failed to create playlist", false);
         }
     });
 
@@ -822,6 +933,58 @@ document.addEventListener("DOMContentLoaded", async (e) => {
         // close context menu
         artistContextMenu.classList.remove("show");
     });
+
+    // =============== sidebar search ===============
+    const searchLibraryBtn = $(".search-library-btn");
+    const librarySearchInputWrapper = $(".library-search-input-wrapper");
+    const librarySearchInput = $(".library-search-input");
+    const inputClearBtn = $(".input-clear-btn");
+
+    let sidebarSearchString;
+
+    searchLibraryBtn.addEventListener("click", () => {
+        librarySearchInputWrapper.classList.toggle("show");
+        setTimeout(() => {
+            librarySearchInput.focus();
+        }, 100); // delay 1 chút mới focus được
+    });
+
+    librarySearchInput.addEventListener("keydown", async (e) => {
+        if (e.key !== "Enter") return;
+
+        sidebarSearchString = librarySearchInput.value.trim();
+
+        if (!sidebarSearchString) return;
+
+        const type = +localStorage.getItem("type");
+        const sortMode = localStorage.getItem("sortMode");
+        await renderSidebarSearchedResults(sidebarSearchString, type, sortMode);
+    });
+
+    // close librarySearchInput when clicking outside
+    document.addEventListener("click", async (e) => {
+        // khi nhấn bên ngoài và searchString không có gì -> ẩn librarySearchInput và render lại sidebar
+        if (
+            !librarySearchInputWrapper.contains(e.target) &&
+            !searchLibraryBtn.contains(e.target) &&
+            librarySearchInputWrapper.classList.contains("show") &&
+            !sidebarSearchString
+        ) {
+            librarySearchInputWrapper.classList.remove("show");
+            sidebarSearchString = "";
+            librarySearchInput.value = "";
+
+            const type = +localStorage.getItem("type");
+            const sortMode = localStorage.getItem("sortMode");
+            await fetchAndRenderSidebar(true, type, sortMode);
+        }
+    });
+
+    inputClearBtn.addEventListener("click", () => {
+        sidebarSearchString = "";
+        librarySearchInput.value = "";
+        librarySearchInput.focus();
+    });
 });
 
 // prevent default context menu
@@ -834,7 +997,7 @@ async function handleFollowPlaylist(playlistId) {
         const playlist = await getPlaylistById(playlistId);
         // không cho follow/unfollow playlist của mình (giống spotify)
         if (playlist.is_owner) {
-            // show toast
+            // show toast ?
             console.error("Cannot follow your own playlist!");
             return;
         }
@@ -842,7 +1005,6 @@ async function handleFollowPlaylist(playlistId) {
         const { message, is_following } = await httpRequest.post(
             `playlists/${playlistId}/follow`
         );
-        console.log(message); // show toast this msg
 
         // re-render sidebar
         await reRenderSidebar();
@@ -853,11 +1015,13 @@ async function handleFollowPlaylist(playlistId) {
         }
 
         // show toast success
+        showToast(message, true);
     } catch (error) {
         console.dir(error);
         console.error("Failed to follow playlist: ", error.message);
 
         // show toast : error.response.error.message
+        showToast(error.response.error.message, false);
     }
 }
 
@@ -866,7 +1030,7 @@ async function handleUnfollowPlaylist(playlistId) {
         const playlist = await getPlaylistById(playlistId);
         // không cho follow/unfollow playlist của mình (giống spotify)
         if (playlist.is_owner) {
-            // show toast
+            // show toast ?
             console.error("Cannot unfollow your own playlist!");
             return;
         }
@@ -874,7 +1038,6 @@ async function handleUnfollowPlaylist(playlistId) {
         const { message, is_following } = await httpRequest.del(
             `playlists/${playlistId}/follow`
         );
-        console.log(message); // show toast this msg
 
         // re-render sidebar
         await reRenderSidebar();
@@ -885,11 +1048,13 @@ async function handleUnfollowPlaylist(playlistId) {
         }
 
         // show toast success
+        showToast(message, true);
     } catch (error) {
         console.dir(error);
         console.error("Failed to unfollow playlist: ", error.message);
 
         // show toast : error.response.error.message
+        showToast(error.response.error.message, false);
     }
 }
 
@@ -900,11 +1065,11 @@ async function handleDeletePlaylist(playlistId) {
         if (playlist.name === "Liked Songs") {
             // show toast
             console.error("Cannot delete default playlist!");
+            showToast("Cannot delete default playlist!", false);
             return;
         }
 
         const { message } = await httpRequest.del(`playlists/${playlistId}`);
-        console.log(message); // show toast this message
 
         // re-render sidebar
         await reRenderSidebar();
@@ -915,11 +1080,13 @@ async function handleDeletePlaylist(playlistId) {
         }
 
         // show toast
+        showToast(message, true);
     } catch (error) {
         console.dir(error);
         console.error("Failed to delete playlist: ", error.message);
 
         // show toast : error.response.error.message = "Permission denied: You can only delete your own playlists"
+        showToast(error.response.error.message, false);
     }
 }
 
@@ -928,7 +1095,6 @@ async function handleFollowArtist(artistId) {
         const { message, is_following } = await httpRequest.post(
             `artists/${artistId}/follow`
         );
-        console.log(message); // show toast this message
 
         // re-render sidebar
         await reRenderSidebar();
@@ -939,12 +1105,14 @@ async function handleFollowArtist(artistId) {
         }
 
         // show toast
+        showToast(message, true);
     } catch (error) {
         console.dir(error);
         console.error("Failed to follow artist: ", error.message);
 
         // show toast : error.response.error.message
         // "Not following this artist"
+        showToast(error.response.error.message, false);
     }
 }
 
@@ -953,7 +1121,6 @@ async function handleUnfollowArtist(artistId) {
         const { message, is_following } = await httpRequest.del(
             `artists/${artistId}/follow`
         );
-        console.log(message); // show toast this message
 
         // re-render sidebar
         await reRenderSidebar();
@@ -964,12 +1131,14 @@ async function handleUnfollowArtist(artistId) {
         }
 
         // show toast
+        showToast(message, true);
     } catch (error) {
         console.dir(error);
         console.error("Failed to unfollow artist: ", error.message);
 
         // show toast : error.response.error.message
         // "Not following this artist"
+        showToast(error.response.error.message, false);
     }
 }
 
@@ -1046,7 +1215,6 @@ async function fetchAndRenderPlaylistPage(playlistId) {
 
     try {
         const playlist = await httpRequest.get(`playlists/${playlistId}`);
-        console.log(playlist);
 
         // đính playlistId vào playlist-section
         playlistSection.setAttribute("data-id", playlistId);
@@ -1082,6 +1250,9 @@ async function fetchAndRenderPlaylistPage(playlistId) {
         playlistStats.textContent = `${
             totalTracks > 1 ? totalTracks + " songs" : totalTracks + " song"
         }, ${formatPlaylistDuration(totalDuration)}`;
+
+        // update site title
+        siteTitle.textContent = `${playlist.name} | Spotify`;
 
         // gắn ID cho trackList
         trackList.setAttribute("id", playlistId);
@@ -1158,6 +1329,9 @@ async function fetchAndRenderArtistPage(artistId) {
         // update follow button
         followBtn.classList.add("show");
         followBtn.textContent = artist.is_following ? "Following" : "Follow";
+
+        // update site title
+        siteTitle.textContent = `${artist.name} | Spotify`;
 
         // gắn ID cho trackList
         trackList.setAttribute("id", artistId);
@@ -1260,7 +1434,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         } catch (error) {
             console.dir(error);
             console.error("Failed to load Popular Artists: ", error.message);
-            // show toast
         }
     }
 
@@ -1901,7 +2074,6 @@ async function removeTrackFromPlaylist(playlistId, trackId) {
         const { message } = await httpRequest.del(
             `playlists/${playlistId}/tracks/${trackId}`
         );
-        console.log(message);
 
         // re-render playlist page
         await fetchAndRenderPlaylistPage(playlistId);
@@ -1921,6 +2093,7 @@ async function removeTrackFromPlaylist(playlistId, trackId) {
         }
 
         // show toast
+        showToast(message, true);
     } catch (error) {
         console.dir(error);
         console.error(
@@ -1928,6 +2101,7 @@ async function removeTrackFromPlaylist(playlistId, trackId) {
             error.message
         );
         // show toast
+        showToast(error.response.error.message, false);
     }
 }
 
@@ -2006,16 +2180,17 @@ async function addTrackToPlaylist(playlistId, trackId) {
             `playlists/${playlistId}/tracks`,
             data
         );
-        console.log(message); // show toast this
 
         // re-render sidebar
         await reRenderSidebar();
 
         // show toast
+        showToast(message, true);
     } catch (error) {
         console.dir(error);
         console.error("Failed to add this track to playlist: ", error.message);
         // show toast : error.response.error.message
+        showToast(error.response.error.message, false);
     }
 }
 
@@ -2116,8 +2291,9 @@ document.addEventListener("keydown", (e) => {
 editPlaylistDetailsBtn.addEventListener("click", async (e) => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (!user) {
+        console.error("Log in/sign up to edit playlist");
         // show toast
-        console.error("log in/sign up to edit playlist");
+        showToast("Log in to edit playlist", false);
         return;
     }
 
@@ -2126,14 +2302,15 @@ editPlaylistDetailsBtn.addEventListener("click", async (e) => {
 
     // cannot edit if the playlist is 'Liked Songs' (default) or owned by other users
     if (!playlist.is_owner) {
-        // show toast
-
         console.error("Cannot edit other user's playlist!");
+        // show toast
+        showToast("Cannot edit other user's playlist!", false);
         return;
     } else if (playlist.name === "Liked Songs") {
-        // show toast
-
         console.error("Cannot edit default playlist!");
+        // show toast
+        showToast("Cannot edit default playlist!", false);
+
         return;
     }
 
@@ -2168,12 +2345,16 @@ async function updatePlaylistImageUrl(playlistId, formData) {
         const res = await httpRequest.put(`playlists/${playlistId}`, {
             image_url: `https://spotify.f8team.dev${file.url}`,
         });
-        console.log(res.message);
+        console.log(res.message); // doing !
+
+        // show toast
+        showToast("Updated Playlist cover image successfully", true);
     } catch (error) {
         console.dir(error);
         console.error("Failed to update playlist cover image!");
 
         // show toast error
+        showToast("Failed to update Playlist cover image", false);
     }
 }
 
@@ -2195,7 +2376,6 @@ playlistEditDetailsSaveBtn.addEventListener("click", async (e) => {
             `playlists/${editPlaylistId}`,
             data
         );
-        console.log(message);
 
         // upload playlist cover image
         await updatePlaylistImageUrl(editPlaylistId, formData);
@@ -2207,10 +2387,12 @@ playlistEditDetailsSaveBtn.addEventListener("click", async (e) => {
         await fetchAndRenderPlaylistPage(editPlaylistId);
 
         // show toast success
+        showToast(message, true);
     } catch (error) {
         console.dir(error);
-        console.error("Cannot update this playlist!");
+        console.error("Failed to update this playlist!");
         // show toast
+        showToast("Failed to update this playlist!", false);
     } finally {
         // close modal
         closePlaylistEditDetailsModal();
@@ -2471,6 +2653,7 @@ searchInput.addEventListener("keydown", async (e) => {
             console.error("Failed to search: ", error.message);
 
             // show toast
+            showToast("Failed to search", false);
         }
     }
 });
@@ -2625,6 +2808,9 @@ $$(".go-home-btn").forEach((button) => {
         // hide playlist + artist section
         playlistSection.classList.remove("show");
         artistSection.classList.remove("show");
+
+        // update site title
+        siteTitle.textContent = "Spotify";
     });
 });
 
@@ -2664,6 +2850,22 @@ $$(".tooltip").forEach((ele) => {
 });
 
 // ================ helpers ====================
+const toastContainer = $(".toast-container");
+function showToast(message, isSuccess, ms = 2500) {
+    const toast = document.createElement("div");
+    const toastType = isSuccess ? "success" : "error";
+    toast.className = `toast ${toastType}`;
+    toast.innerHTML = `<p class="toast-content">${message}</p>`;
+    toastContainer.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.remove(toastType);
+        toast.addEventListener("transitionend", () => {
+            toast.remove();
+        });
+    }, ms);
+}
+
 function formatPlaylistDuration(duration) {
     const hours = Math.floor(duration / 3600);
     const minutes = Math.floor((duration % 3600) / 60);
@@ -2751,13 +2953,4 @@ main account:
   "bio": "something",
   "country": "US"
 }
-*/
-
-/*
-todo: 
-- liked songs img playlist select
-- sidebar search
-- fullscreen
-- toast
-- title
 */

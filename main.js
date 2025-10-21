@@ -1842,38 +1842,10 @@ shuffleBtn.addEventListener("click", function () {
     localStorage.setItem("isShuffled", isShuffled);
 });
 
-// volume bar
-volumeBar.addEventListener("mousedown", (e) => {
-    isAdjustingVolume = true;
-
-    // update inner width
-    const barFillPercent = calculateBarFillPercent(e, volumeBar);
-    innerVolumeBar.style.width = `${barFillPercent}%`;
-    // update volume
-    audioElement.volume = barFillPercent / 100;
-
-    // style innerVolumeBar
-    volumeBar.classList.add("is-adjusting");
-
-    // change volumeIcon based on volume value
-    setVolumeIcon(audioElement.volume);
-});
-
-document.addEventListener("mouseup", (e) => {
-    if (isAdjustingVolume) {
-        const barFillPercent = calculateBarFillPercent(e, volumeBar);
-        // update volume
-        audioElement.volume = barFillPercent / 100;
-
-        // save to localStorage
-        localStorage.setItem("volumeValue", audioElement.volume);
-
-        // reset innerVolumeBar style
-        volumeBar.classList.remove("is-adjusting");
-
-        isAdjustingVolume = false;
-    }
-});
+// ==============================
+// ========= volume bar =========
+// ==============================
+let previousVolumeValue = +localStorage.getItem("volumeValue");
 
 function setVolumeIcon(volumeValue) {
     const classes = [
@@ -1899,6 +1871,47 @@ function setVolumeIcon(volumeValue) {
     volumeIcon.classList.add(volumeClass);
 }
 
+function updateVolumeBar(volumeValue) {
+    audioElement.volume = volumeValue;
+    // set volume icon based on volume value
+    setVolumeIcon(volumeValue);
+    // update width
+    innerVolumeBar.style.width = `${volumeValue * 100}%`;
+}
+
+volumeBar.addEventListener("mousedown", (e) => {
+    isAdjustingVolume = true;
+
+    // update inner width
+    const barFillPercent = calculateBarFillPercent(e, volumeBar);
+    innerVolumeBar.style.width = `${barFillPercent}%`;
+    // update volume
+    audioElement.volume = barFillPercent / 100;
+
+    // style innerVolumeBar
+    volumeBar.classList.add("is-adjusting");
+
+    // change volumeIcon based on volume value
+    setVolumeIcon(audioElement.volume);
+});
+
+document.addEventListener("mouseup", (e) => {
+    if (isAdjustingVolume) {
+        const barFillPercent = calculateBarFillPercent(e, volumeBar);
+        // update volume
+        audioElement.volume = barFillPercent / 100;
+        previousVolumeValue = audioElement.volume;
+
+        // save to localStorage
+        localStorage.setItem("volumeValue", audioElement.volume);
+
+        // reset innerVolumeBar style
+        volumeBar.classList.remove("is-adjusting");
+
+        isAdjustingVolume = false;
+    }
+});
+
 document.addEventListener("mousemove", (e) => {
     if (isAdjustingVolume) {
         const barFillPercent = calculateBarFillPercent(e, volumeBar);
@@ -1909,6 +1922,21 @@ document.addEventListener("mousemove", (e) => {
 
         // change volumeIcon based on volume value
         setVolumeIcon(audioElement.volume);
+    }
+});
+
+// click volume button to mute
+$(".volume-btn").addEventListener("click", () => {
+    if (audioElement.volume) {
+        updateVolumeBar(0);
+
+        // save to localStorage
+        localStorage.setItem("volumeValue", 0);
+    } else {
+        updateVolumeBar(previousVolumeValue);
+
+        // save to localStorage
+        localStorage.setItem("volumeValue", previousVolumeValue);
     }
 });
 
@@ -2900,10 +2928,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     // update volume
-    audioElement.volume = +localStorage.getItem("volumeValue");
-    innerVolumeBar.style.width = `${audioElement.volume * 100}%`;
-    // change volumeIcon based on volume value
-    setVolumeIcon(audioElement.volume);
+    const volumeValue = +localStorage.getItem("volumeValue");
+    updateVolumeBar(volumeValue);
 });
 
 /*
@@ -2922,5 +2948,4 @@ main account:
 - track contextmenu: prevent action if not log in - show toast
 - follow in playlist/artist page: prevent action if not log in - show correct toast message
 - add to Liked song button: show toast (not logged in)
-- implement Mute
 */

@@ -65,6 +65,16 @@
     }
 }
 
+@media (max-width: 800px) {
+    .auth-buttons {
+        gap: var(--spacing-sm);
+    }
+
+    .signup-btn {
+        padding: var(--spacing-sm);
+    }
+}
+
 /* Mobile */
 @media (max-width: 767px) {
     .app-container {
@@ -87,7 +97,6 @@
 
     .main-header {
         padding: var(--spacing-md);
-        /* flex-wrap: wrap; */
         gap: var(--spacing-md);
     }
 
@@ -107,6 +116,10 @@
 
     .search-input {
         min-width: auto;
+    }
+
+    .search-result-modal {
+        left: 0%;
     }
 
     .user-name {
@@ -258,6 +271,14 @@
 }
 
 @media (max-width: 576px) {
+    .main-header {
+        flex-wrap: wrap;
+    }
+
+    .search-container {
+        order: 1;
+    }
+
     .user-name {
         display: none;
     }

@@ -87,7 +87,8 @@
 }
 
 .search-container {
-    flex: 1;
+    /* flex: 1; */
+    flex-grow: 0;
     display: flex;
     justify-content: flex-start;
     max-width: 420px;

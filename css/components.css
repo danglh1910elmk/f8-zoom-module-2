@@ -107,6 +107,7 @@
     cursor: pointer;
     min-width: 80px;
     text-align: center;
+    white-space: nowrap;
 }
 
 .signup-btn {
@@ -330,7 +331,7 @@
 
 .search-input {
     width: 100%;
-    min-width: 250px;
+    min-width: 240px;
     padding: var(--spacing-sm) var(--spacing-md) var(--spacing-sm) 40px;
     border-radius: var(--radius-xl);
     background-color: var(--bg-tertiary);
@@ -1791,9 +1792,8 @@ textarea.playlist-form-input {
 .search-result-modal {
     position: absolute;
     top: 100%;
-    left: 55%;
-    z-index: 9;
-    transform: translateX(-50%);
+    left: -6%;
+    z-index: 99;
 
     width: 500px;
     min-width: 350px;

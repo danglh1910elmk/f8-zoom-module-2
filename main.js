@@ -1,4 +1,14 @@
 import httpRequest from "./utils/httpRequest.js";
+import {
+    showToast,
+    escapeHTML,
+    formatPlaylistDuration,
+    formatTrackDuration,
+    createArray,
+    shuffleArray,
+    generateEmail,
+    generatePass,
+} from "./utils/helpers.js";
 
 const $ = document.querySelector.bind(document);
 const $$ = document.querySelectorAll.bind(document);
@@ -26,14 +36,17 @@ let isShuffled = false;
 let currentIndex;
 let currentSongList = []; // playlist đang play
 let nextSongList = [];
-let currentSongListId, nextSongListId;
+let currentSongListId;
+let nextSongListId; // playlistId/artistId khi nhấn vào 1 playlist/artist cụ thể
 /*
-    - mỗi khi vào 1 playlist/artist cự thể, gán nextSongListId = playlistId/artistId đồng thời gán nextSongList = DS bài hát của playlist/artist đó
+    - mỗi khi vào 1 playlist/artist cụ thể, gán nextSongListId = playlistId/artistId đồng thời gán nextSongList = DS bài hát của playlist/artist đó
     - khi nhấn vào playlistPlayBtn/artistPlayBtn (click vào 1 song trong songList) thì sẽ gán currentSongList = nextSongList và play currentSongList 
     - currentSongListId, nextSongListId: mục đích để sau này kiểm tra xem nextSongList có nằm trong 'view' không
 */
 
-// Auth Modal Functionality
+// ========================================
+// ======= Auth Modal Functionality =======
+// ========================================
 document.addEventListener("DOMContentLoaded", function () {
     // Get DOM elements
     const signupBtn = document.querySelector(".signup-btn");
@@ -75,8 +88,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         signupEmailInput.value = generateEmail();
         $("#signupPassword").value = generatePass();
-        // $("#signupEmail").value = "@gmail.com";
-        // $("#signupPassword").value = "";
     });
 
     // Open modal with Login form when clicking Login button
@@ -332,7 +343,36 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-// User Menu Dropdown Functionality (log out)
+function updateUserInfo(user) {
+    if (!user) return;
+
+    const userName = $("#user-name");
+    const userAvatarImg = $("#user-avatar-img");
+    const userInfo = $(".user-info");
+    const authButtons = $(".auth-buttons");
+
+    // set avatar
+    if (user.avatar_url) {
+        userAvatarImg.src = user.avatar_url;
+    }
+
+    // set display_name or email
+    if (user.display_name) {
+        userName.textContent = user.display_name;
+    } else {
+        userName.textContent = user.email;
+    }
+
+    // display userInfo
+    userInfo.classList.add("show");
+
+    // hide sign in/up buttons
+    authButtons.classList.remove("show");
+}
+
+// ================================================
+// == User Menu Dropdown Functionality (log out) ==
+// ================================================
 document.addEventListener("DOMContentLoaded", function () {
     const userAvatar = document.getElementById("userAvatar");
     const userDropdown = document.getElementById("userDropdown");
@@ -393,6 +433,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
             // update sidebar
             fetchAndRenderSidebar(null);
+
+            // go to home
+            $(".go-home-btn").click();
 
             // remove accessToken localStorage
             localStorage.removeItem("accessToken");
@@ -604,51 +647,9 @@ async function reRenderSidebar() {
     await fetchAndRenderSidebar(true, type, sortMode);
 }
 
-// INITIALIZE
-document.addEventListener("DOMContentLoaded", async function () {
-    async function fetchUser() {
-        try {
-            const { user } = await httpRequest.get("users/me");
-            return user;
-        } catch (error) {
-            console.dir(error);
-            console.error("Failed to fetch User!");
-
-            // display sign-in, sign-up buttons
-            authButtons.classList.add("show");
-        }
-    }
-    const authButtons = $(".auth-buttons");
-
-    const user = await fetchUser();
-
-    updateUserInfo(user);
-
-    // update sidebar (playlists + artists)
-    fetchAndRenderSidebar(user, 3, "recent");
-    localStorage.setItem("type", 3); // default, type is 3 (render both playlist + artist)
-    localStorage.setItem("sortMode", "recent"); // default, sortMode = recent
-
-    if (!user) return;
-
-    // update repeated, shuffled status
-    isRepeated = localStorage.getItem("isRepeated") === "true";
-    repeatBtn.classList.toggle("active", isRepeated);
-    isShuffled = localStorage.getItem("isShuffled") === "true";
-    shuffleBtn.classList.toggle("active", isShuffled);
-    // nếu shuffle đang bật thì xáo trộn mảng
-    if (isShuffled) {
-        shuffleArray(unplayedSongIndexes);
-    }
-
-    // update volume
-    audioElement.volume = +localStorage.getItem("volumeValue");
-    innerVolumeBar.style.width = `${audioElement.volume * 100}%`;
-    // change volumeIcon based on volume value
-    setVolumeIcon(audioElement.volume);
-});
-
-// sidebar
+// =======================================
+// =============== Sidebar ===============
+// =======================================
 document.addEventListener("DOMContentLoaded", async (e) => {
     const createPlaylistBtn = $("#createPlaylistBtn");
     const playlistsFilterBtn = $("#playlistsBtn");
@@ -665,7 +666,9 @@ document.addEventListener("DOMContentLoaded", async (e) => {
         targetElement.classList.add("active");
     }
 
+    // ================================================
     // ===== sort playlists/artists functionality =====
+    // ================================================
     sortBtn.addEventListener("click", () => {
         // open/close Dropdown menu
         sortDropdown.classList.toggle("show");
@@ -735,7 +738,9 @@ document.addEventListener("DOMContentLoaded", async (e) => {
         sortDropdown.classList.remove("show");
     });
 
+    // =====================================================
     // ===== filter by Playlist / Artist functionality =====
+    // =====================================================
     playlistsFilterBtn.addEventListener("click", function () {
         const user = JSON.parse(localStorage.getItem("user"));
         if (!user) return;
@@ -934,7 +939,9 @@ document.addEventListener("DOMContentLoaded", async (e) => {
         artistContextMenu.classList.remove("show");
     });
 
+    // ==============================================
     // =============== sidebar search ===============
+    // ==============================================
     const searchLibraryBtn = $(".search-library-btn");
     const librarySearchInputWrapper = $(".library-search-input-wrapper");
     const librarySearchInput = $(".library-search-input");
@@ -1444,7 +1451,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     artistsGrid.addEventListener("click", handleArtistsContainerClick);
 });
 
+// ====================================================
 // =================== music player ===================
+// ====================================================
 const playerImage = $(".player-image");
 const playerTitle = $(".player-title");
 const playerArtist = $(".player-artist");
@@ -1468,20 +1477,6 @@ const volumeIcon = $(".volume-container button i");
 let isSeeking = false;
 let isAdjustingVolume = false;
 let unplayedSongIndexes = [];
-
-function createArray(n) {
-    return Array(n)
-        .fill(0)
-        .map((_, i) => i);
-}
-
-function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-}
 
 function removeElementFromUnplayedSongIndexes(element) {
     const index = unplayedSongIndexes.indexOf(element);
@@ -2027,7 +2022,9 @@ $$(".track-list").forEach((trackList) => {
     trackList.addEventListener("dblclick", handleSongListDblclick);
 });
 
+// ===============================
 // ====== track contextmenu ======
+// ===============================
 const trackContextMenu = $(".track-context-menu");
 const playlistSelectModal = $(".playlist-select-modal-overlay");
 const playlistSelectModalList = $(".playlist-select-modal-list");
@@ -2445,7 +2442,10 @@ playlistCoverInput.addEventListener("change", async () => {
     };
 });
 
+// ===========================================================
 // ======== follow/unfollow from playlist/artist page ========
+// ===========================================================
+
 const playlistFollowBtn = $(".playlist-section .follow-btn");
 const artistFollowBtn = $(".artist-section .follow-btn");
 
@@ -2491,7 +2491,9 @@ artistFollowBtn.addEventListener("click", async (e) => {
     }
 });
 
+// ==========================================
 // ======== add to Like Songs button ========
+// ==========================================
 let likedSongPlaylistId = null;
 
 async function getLikedSongId() {
@@ -2529,7 +2531,9 @@ addBtn.addEventListener("click", async () => {
     await addTrackToPlaylist(likedSongPlaylistId, trackId);
 });
 
-// universal search
+// ====================================================
+// ================= universal search =================
+// ====================================================
 const searchInput = $(".search-input");
 const searchResultModal = $(".search-result-modal");
 const searchTotalResults = $(".search-total-results");
@@ -2542,7 +2546,7 @@ const searchTrackList = $(".search-track-list");
 const searchPlaylistList = $(".search-playlist-list");
 const searchArtistList = $(".search-artist-list");
 
-let searchedTracks;
+let searchedTracks; // lưu lại danh sách tracks trả về khi search
 
 function renderSearchTrackList(tracks, addPlayingClass = false) {
     // addPlayingClass: có thêm trạng thái playing vào track-item không? chỉ dùng khi double click vào track-item
@@ -2798,23 +2802,28 @@ searchArtistList.addEventListener("click", async (e) => {
     await handleArtistsContainerClick(e);
 });
 
+// ====================================
 // ======== go to Home buttons ========
+// ====================================
+function handleGoToHomeBtnClick() {
+    // display Biggest hits + popular artists
+    hitsSection.classList.add("show");
+    popularArtistsSection.classList.add("show");
+
+    // hide playlist + artist section
+    playlistSection.classList.remove("show");
+    artistSection.classList.remove("show");
+
+    // update site title
+    siteTitle.textContent = "Spotify";
+}
 $$(".go-home-btn").forEach((button) => {
-    button.addEventListener("click", () => {
-        // display Biggest hits + popular artists
-        hitsSection.classList.add("show");
-        popularArtistsSection.classList.add("show");
-
-        // hide playlist + artist section
-        playlistSection.classList.remove("show");
-        artistSection.classList.remove("show");
-
-        // update site title
-        siteTitle.textContent = "Spotify";
-    });
+    button.addEventListener("click", handleGoToHomeBtnClick);
 });
 
+// ==========================
 // ======= fullscreen =======
+// ==========================
 $(".full-screen-btn").addEventListener("click", () => {
     if (document.fullscreenElement) {
         document.exitFullscreen();
@@ -2823,7 +2832,9 @@ $(".full-screen-btn").addEventListener("click", () => {
     }
 });
 
-// ======= tooltip =======
+// ===========================
+// ========= tooltip =========
+// ===========================
 $$(".tooltip").forEach((ele) => {
     const tooltipText = ele.querySelector(".tooltip-text");
     if (!tooltipText) return;
@@ -2849,99 +2860,51 @@ $$(".tooltip").forEach((ele) => {
     });
 });
 
-// ================ helpers ====================
-const toastContainer = $(".toast-container");
-function showToast(message, isSuccess, ms = 2500) {
-    const toast = document.createElement("div");
-    const toastType = isSuccess ? "success" : "error";
-    toast.className = `toast ${toastType}`;
-    toast.innerHTML = `<p class="toast-content">${message}</p>`;
-    toastContainer.appendChild(toast);
+// ==========================
+// ======= INITIALIZE =======
+// ==========================
+document.addEventListener("DOMContentLoaded", async function () {
+    async function fetchUser() {
+        try {
+            const { user } = await httpRequest.get("users/me");
+            return user;
+        } catch (error) {
+            console.dir(error);
+            console.error("Failed to fetch User!");
 
-    setTimeout(() => {
-        toast.classList.remove(toastType);
-        toast.addEventListener("transitionend", () => {
-            toast.remove();
-        });
-    }, ms);
-}
-
-function formatPlaylistDuration(duration) {
-    const hours = Math.floor(duration / 3600);
-    const minutes = Math.floor((duration % 3600) / 60);
-    const seconds = duration % 60;
-
-    if (hours) {
-        return `about ${hours === 1 ? "hour" : "hours"}`;
-    } else {
-        return `${minutes} min ${seconds} sec`;
+            // display sign-in, sign-up buttons
+            authButtons.classList.add("show");
+        }
     }
-}
-
-function formatTrackDuration(duration) {
-    const hours = Math.floor(duration / 3600);
-    const minutes = Math.floor((duration % 3600) / 60);
-    const seconds = Math.floor(duration % 60);
-
-    if (hours) {
-        return `${hours}:${String(minutes).padStart(2, "0")}:${String(
-            seconds
-        ).padStart(2, "0")}`;
-    } else {
-        return `${minutes}:${String(seconds).padStart(2, "0")}`;
-    }
-}
-
-function updateUserInfo(user) {
-    if (!user) return;
-
-    const userName = $("#user-name");
-    const userAvatarImg = $("#user-avatar-img");
-    const userInfo = $(".user-info");
     const authButtons = $(".auth-buttons");
 
-    // set avatar
-    if (user.avatar_url) {
-        userAvatarImg.src = user.avatar_url;
+    const user = await fetchUser();
+
+    updateUserInfo(user);
+
+    // update sidebar (playlists + artists)
+    fetchAndRenderSidebar(user, 3, "recent");
+    localStorage.setItem("type", 3); // default, type is 3 (render both playlist + artist)
+    localStorage.setItem("sortMode", "recent"); // default, sortMode = recent
+
+    if (!user) return;
+
+    // update repeated, shuffled status
+    isRepeated = localStorage.getItem("isRepeated") === "true";
+    repeatBtn.classList.toggle("active", isRepeated);
+    isShuffled = localStorage.getItem("isShuffled") === "true";
+    shuffleBtn.classList.toggle("active", isShuffled);
+    // nếu shuffle đang bật thì xáo trộn mảng
+    if (isShuffled) {
+        shuffleArray(unplayedSongIndexes);
     }
 
-    // set Display name or email
-    if (user.display_name) {
-        userName.textContent = user.display_name;
-    } else {
-        userName.textContent = user.email;
-    }
-
-    // display userInfo
-    userInfo.classList.add("show");
-
-    // hide sign in/up buttons
-    authButtons.classList.remove("show");
-}
-
-function escapeHTML(html) {
-    // return DOMPurify.sanitize(html);
-    const div = document.createElement("div");
-    div.textContent = html;
-    return div.innerHTML;
-}
-
-function generateEmail() {
-    return (
-        "ddx" +
-        Math.ceil(Math.random() * 1000) +
-        Math.ceil(Math.random() * 1000) +
-        "@gmail.com"
-    );
-}
-
-function generatePass() {
-    return (
-        "1Ddx" +
-        Math.ceil(Math.random() * 1000) +
-        Math.ceil(Math.random() * 1000)
-    );
-}
+    // update volume
+    audioElement.volume = +localStorage.getItem("volumeValue");
+    innerVolumeBar.style.width = `${audioElement.volume * 100}%`;
+    // change volumeIcon based on volume value
+    setVolumeIcon(audioElement.volume);
+});
 
 /*
 main account: 
@@ -2953,4 +2916,11 @@ main account:
   "bio": "something",
   "country": "US"
 }
+*/
+
+/*
+- track contextmenu: prevent action if not log in - show toast
+- follow in playlist/artist page: prevent action if not log in - show correct toast message
+- add to Liked song button: show toast (not logged in)
+- implement Mute
 */

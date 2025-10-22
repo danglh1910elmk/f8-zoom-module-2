@@ -210,7 +210,7 @@ document.addEventListener("DOMContentLoaded", function () {
             try {
                 const { user, access_token, refresh_token } =
                     await httpRequest.post("auth/register", credentials);
-                console.log("sign up user: ", user);
+                // console.log("sign up user: ", user);
 
                 // show toast
                 showToast("Signed up successfully", true);
@@ -270,7 +270,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 const { user, access_token, refresh_token } =
                     await httpRequest.post("auth/login", credentials);
 
-                console.log("login user: ", user);
+                // console.log("login user: ", user);
 
                 // show toast
                 showToast("Logged in successfully", true);
@@ -282,6 +282,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 updateUserInfo(user);
                 fetchAndRenderSidebar(user);
+
+                // go to home
+                $(".go-home-btn").click();
 
                 closeModal();
             } catch (error) {
@@ -423,7 +426,7 @@ document.addEventListener("DOMContentLoaded", function () {
             console.log(details);
 
             // show toast
-            showToast("Logged out successfully");
+            showToast("Logged out successfully", true);
 
             // hide user-info
             userInfo.classList.remove("show");
@@ -444,6 +447,7 @@ document.addEventListener("DOMContentLoaded", function () {
             localStorage.removeItem("user");
         } catch (error) {
             console.dir(error);
+            console.error("Failed to log out: ", error.message);
         }
     });
 });
@@ -681,8 +685,7 @@ document.addEventListener("DOMContentLoaded", async (e) => {
     });
 
     sortDropdown.addEventListener("click", async (e) => {
-        const user = JSON.parse(localStorage.getItem("user"));
-        if (!user) return;
+        if (!isUserLoggedIn("Log in to do this action!")) return;
 
         const dropdownItem = e.target.closest(".dropdown-item");
         const sortDropdownBtn =
@@ -742,8 +745,7 @@ document.addEventListener("DOMContentLoaded", async (e) => {
     // ===== filter by Playlist / Artist functionality =====
     // =====================================================
     playlistsFilterBtn.addEventListener("click", function () {
-        const user = JSON.parse(localStorage.getItem("user"));
-        if (!user) return;
+        if (!isUserLoggedIn("Log in to do this action!")) return;
 
         let sortMode;
         // deactivate playlistsFilterBtn
@@ -783,8 +785,7 @@ document.addEventListener("DOMContentLoaded", async (e) => {
     });
 
     artistsFilterBtn.addEventListener("click", function () {
-        const user = JSON.parse(localStorage.getItem("user"));
-        if (!user) return;
+        if (!isUserLoggedIn("Log in to do this action!")) return;
 
         let sortMode;
         // deactivate artistsFilterBtn
@@ -842,8 +843,7 @@ document.addEventListener("DOMContentLoaded", async (e) => {
     // ==========================================
 
     createPlaylistBtn.addEventListener("click", async () => {
-        const user = JSON.parse(localStorage.getItem("user"));
-        if (!user) return;
+        if (!isUserLoggedIn("Log in to create new playlist!")) return;
 
         try {
             const playlistInfo = {
@@ -855,7 +855,6 @@ document.addEventListener("DOMContentLoaded", async (e) => {
                 "playlists",
                 playlistInfo
             );
-            console.log(message);
 
             // re-render sidebar
             await reRenderSidebar();
@@ -950,6 +949,8 @@ document.addEventListener("DOMContentLoaded", async (e) => {
     let sidebarSearchString;
 
     searchLibraryBtn.addEventListener("click", () => {
+        if (!isUserLoggedIn()) return;
+
         librarySearchInputWrapper.classList.toggle("show");
         setTimeout(() => {
             librarySearchInput.focus();
@@ -999,7 +1000,19 @@ document.addEventListener("contextmenu", (e) => {
     e.preventDefault();
 });
 
+function isUserLoggedIn(toastMessage = null) {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user) {
+        toastMessage && showToast(toastMessage, false);
+        return false;
+    }
+
+    return true;
+}
+
 async function handleFollowPlaylist(playlistId) {
+    if (!isUserLoggedIn("Log in to follow this playlist!")) return;
+
     try {
         const playlist = await getPlaylistById(playlistId);
         // không cho follow/unfollow playlist của mình (giống spotify)
@@ -1098,6 +1111,8 @@ async function handleDeletePlaylist(playlistId) {
 }
 
 async function handleFollowArtist(artistId) {
+    if (!isUserLoggedIn("Log in to follow this artist!")) return;
+
     try {
         const { message, is_following } = await httpRequest.post(
             `artists/${artistId}/follow`
@@ -1226,6 +1241,9 @@ async function fetchAndRenderPlaylistPage(playlistId) {
         // đính playlistId vào playlist-section
         playlistSection.setAttribute("data-id", playlistId);
 
+        // đính thông tin is_owner
+        playlistSection.setAttribute("data-is-owner", playlist.is_owner);
+
         // update elements in playlist UI
         // update image source
         if (playlist.name === "Liked Songs") {
@@ -1273,8 +1291,6 @@ async function fetchAndRenderPlaylistPage(playlistId) {
         nextSongList = tracks;
         nextSongListId = playlistId;
 
-        console.log(tracks);
-
         // để đồng bộ icon của playPauseBtn và playlistPlayBtn/artistPlayBtn
         // change playlistPlayBtn icon based on audioElement play/pause state
         if (currentSongListId === nextSongListId) {
@@ -1309,7 +1325,6 @@ async function fetchAndRenderArtistPage(artistId) {
 
     try {
         const artist = await httpRequest.get(`artists/${artistId}`);
-        console.log(artist);
 
         // đính artistId vào artist-section
         artistSection.setAttribute("data-id", artistId);
@@ -1351,8 +1366,6 @@ async function fetchAndRenderArtistPage(artistId) {
         // ! gán nextSongList = DS bài hát
         nextSongList = tracks;
         nextSongListId = artistId;
-
-        console.log(tracks);
 
         // để đồng bộ icon của playPauseBtn và playlistPlayBtn/artistPlayBtn
         // change artistPlayBtnIcon icon based on audioElement play/pause state
@@ -2179,6 +2192,8 @@ trackContextMenu.addEventListener("click", (e) => {
     const menuItem = e.target.closest(".menu-item");
     if (!menuItem) return;
 
+    if (!isUserLoggedIn("Log in to do this action!")) return;
+
     // click 'Add to playlist' option
     if (menuItem.classList.contains("add-to-playlist")) {
         // open playlist-select-modal
@@ -2313,14 +2328,8 @@ document.addEventListener("keydown", (e) => {
 });
 
 // click playlist name to edit
-editPlaylistDetailsBtn.addEventListener("click", async (e) => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user) {
-        console.error("Log in/sign up to edit playlist");
-        // show toast
-        showToast("Log in to edit playlist", false);
-        return;
-    }
+editPlaylistDetailsBtn.addEventListener("click", async () => {
+    if (!isUserLoggedIn("Log in to edit playlist!")) return;
 
     editPlaylistId = playlistSection.dataset.id;
     const playlist = await getPlaylistById(editPlaylistId);
@@ -2364,13 +2373,10 @@ async function updatePlaylistImageUrl(playlistId, formData) {
             formData
         );
 
-        console.log(message);
-
         // update playlist's image_url to DB
         const res = await httpRequest.put(`playlists/${playlistId}`, {
             image_url: `https://spotify.f8team.dev${file.url}`,
         });
-        console.log(res.message); // doing !
 
         // show toast
         showToast("Updated Playlist cover image successfully", true);
@@ -2415,9 +2421,9 @@ playlistEditDetailsSaveBtn.addEventListener("click", async (e) => {
         showToast(message, true);
     } catch (error) {
         console.dir(error);
-        console.error("Failed to update this playlist!");
-        // show toast
-        showToast("Failed to update this playlist!", false);
+        console.error("Failed to update this playlist: ", error.message);
+
+        showToast(error.response.error.message, false);
     } finally {
         // close modal
         closePlaylistEditDetailsModal();
@@ -2442,6 +2448,12 @@ playlistNameInput.addEventListener("input", function () {
 
 // ============ upload image ============
 uploadImageBtn.addEventListener("click", () => {
+    if (!isUserLoggedIn()) return;
+
+    const isOwner = playlistSection.dataset.isOwner;
+
+    if (isOwner === "false") return;
+
     playlistCoverInput.click();
 });
 
@@ -2453,8 +2465,6 @@ playlistCoverInput.addEventListener("change", async () => {
 
     formData = new FormData();
     formData.append("cover", file); // append the file under the key 'cover'
-
-    console.log(file);
 
     // update preview image
     const reader = new FileReader(); // create new FileReader instance to read image file
@@ -2542,8 +2552,7 @@ async function getLikedSongId() {
 }
 
 addBtn.addEventListener("click", async () => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user) return;
+    if (!isUserLoggedIn("Log in to do this action!")) return;
 
     if (!likedSongPlaylistId) {
         likedSongPlaylistId = await getLikedSongId();
@@ -2674,8 +2683,6 @@ searchInput.addEventListener("keydown", async (e) => {
             } = await httpRequest.get(
                 `search?q=${searchString}&type=all&limit=20&offset=0`
             );
-
-            console.log(results);
 
             searchedTracks = tracks;
 
@@ -2942,10 +2949,4 @@ main account:
   "bio": "something",
   "country": "US"
 }
-*/
-
-/*
-- track contextmenu: prevent action if not log in - show toast
-- follow in playlist/artist page: prevent action if not log in - show correct toast message
-- add to Liked song button: show toast (not logged in)
 */

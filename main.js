@@ -271,6 +271,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     await httpRequest.post("auth/login", credentials);
 
                 // console.log("login user: ", user);
+                console.log("Logged in successfully");
 
                 // show toast
                 showToast("Logged in successfully", true);
@@ -466,7 +467,10 @@ async function fetchFollowedAndOwnedPlaylists() {
         return [...followedPlaylists, ...ownedPlaylists];
     } catch (error) {
         console.dir(error);
-        console.error("Cannot fetch user's followed and owned playlists");
+        console.error(
+            "Cannot fetch user's followed and owned playlists: ",
+            error.message
+        );
     }
 }
 
@@ -477,7 +481,7 @@ async function fetchFollowedArtists() {
         return res.artists;
     } catch (error) {
         console.dir(error);
-        console.error("Cannot fetch user's followed artists");
+        console.error("Cannot fetch user's followed artists: ", error.message);
     }
 }
 
@@ -696,7 +700,7 @@ document.addEventListener("DOMContentLoaded", async (e) => {
 
         if (sortDropdownBtn.classList.contains("sort-by-recent")) {
             addActiveClassToDropdownItem(dropdownItem);
-            fetchAndRenderSidebar(user, type, "recent");
+            fetchAndRenderSidebar(true, type, "recent");
 
             // nếu librarySearchInput đang hiển thị và đang có input trong đó
             if (
@@ -709,7 +713,7 @@ document.addEventListener("DOMContentLoaded", async (e) => {
                     "recent"
                 );
             } else {
-                fetchAndRenderSidebar(user, type, "recent");
+                fetchAndRenderSidebar(true, type, "recent");
             }
 
             sortBtnText.textContent = "Recents";
@@ -729,7 +733,7 @@ document.addEventListener("DOMContentLoaded", async (e) => {
                     "alphabetical"
                 );
             } else {
-                fetchAndRenderSidebar(user, type, "alphabetical");
+                fetchAndRenderSidebar(true, type, "alphabetical");
             }
 
             sortBtnText.textContent = "Alphabetical";
@@ -748,36 +752,39 @@ document.addEventListener("DOMContentLoaded", async (e) => {
         if (!isUserLoggedIn("Log in to do this action!")) return;
 
         let sortMode;
-        // deactivate playlistsFilterBtn
+        // if playlistsFilterBtn is active -> remove 'active' then re-render
         if (this.classList.contains("active")) {
             this.classList.remove("active");
 
             sortMode = localStorage.getItem("sortMode");
-            // nếu librarySearchInput đang hiển thị và đang có input trong đó
+
+            // nếu librarySearchInput đang hiển thị và đang có text trong input
             if (
                 librarySearchInputWrapper.classList.contains("show") &&
                 sidebarSearchString
             ) {
                 renderSidebarSearchedResults(sidebarSearchString, 3, sortMode);
             } else {
-                fetchAndRenderSidebar(user, 3, sortMode); // render both playlists and artists
+                fetchAndRenderSidebar(true, 3, sortMode); // render both playlists and artists
             }
             // save config
             localStorage.setItem("type", 3);
         }
-        // activate playlistsFilterBtn
+        // if playlistsFilterBtn is not active -> add 'active' class then re-render
         else {
             this.classList.add("active");
             artistsFilterBtn.classList.remove("active");
 
             sortMode = localStorage.getItem("sortMode");
+
+            // nếu librarySearchInput đang hiển thị và đang có text trong input
             if (
                 librarySearchInputWrapper.classList.contains("show") &&
                 sidebarSearchString
             ) {
                 renderSidebarSearchedResults(sidebarSearchString, 1, sortMode);
             } else {
-                fetchAndRenderSidebar(user, 1, sortMode); // render playlists only
+                fetchAndRenderSidebar(true, 1, sortMode); // render playlists only
             }
             // save config
             localStorage.setItem("type", 1);
@@ -788,35 +795,40 @@ document.addEventListener("DOMContentLoaded", async (e) => {
         if (!isUserLoggedIn("Log in to do this action!")) return;
 
         let sortMode;
-        // deactivate artistsFilterBtn
+
+        // if artistsFilterBtn is active -> remove 'active' then re-render
         if (this.classList.contains("active")) {
             this.classList.remove("active");
 
             sortMode = localStorage.getItem("sortMode");
+
+            // nếu librarySearchInput đang hiển thị và đang có text trong input
             if (
                 librarySearchInputWrapper.classList.contains("show") &&
                 sidebarSearchString
             ) {
                 renderSidebarSearchedResults(sidebarSearchString, 3, sortMode);
             } else {
-                fetchAndRenderSidebar(user, 3, sortMode); // render both playlists and artists
+                fetchAndRenderSidebar(true, 3, sortMode); // render both playlists and artists
             }
             // save config
             localStorage.setItem("type", 3);
         }
-        // activate artistsFilterBtn
+        // if artistsFilterBtn is not active -> add 'active' class then re-render
         else {
             this.classList.add("active");
             playlistsFilterBtn.classList.remove("active");
 
             sortMode = localStorage.getItem("sortMode");
+
+            // nếu librarySearchInput đang hiển thị và đang có text trong input
             if (
                 librarySearchInputWrapper.classList.contains("show") &&
                 sidebarSearchString
             ) {
                 renderSidebarSearchedResults(sidebarSearchString, 2, sortMode);
             } else {
-                fetchAndRenderSidebar(user, 2, sortMode); // render both playlists and artists
+                fetchAndRenderSidebar(true, 2, sortMode); // render both playlists and artists
             }
             // save config
             localStorage.setItem("type", 2);
@@ -916,7 +928,7 @@ document.addEventListener("DOMContentLoaded", async (e) => {
         if (!menuItem) return;
 
         if (menuItem.classList.contains("unfollow-playlist")) {
-            await handleUnfollowPlaylist(contextMenuId);
+            await handleUnfollowPlaylist(contextMenuId); // doing
         } else if (menuItem.classList.contains("delete-playlist")) {
             await handleDeletePlaylist(contextMenuId);
         }
@@ -2905,7 +2917,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             return user;
         } catch (error) {
             console.dir(error);
-            console.error("Failed to fetch User!");
+            console.error("Failed to fetch User: ", error.message);
 
             // display sign-in, sign-up buttons
             authButtons.classList.add("show");

@@ -446,6 +446,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
             // remove user from localStorage
             localStorage.removeItem("user");
+
+            // remove current song list config
+            localStorage.removeItem("currentIndex");
+            localStorage.removeItem("currentSongList");
+            localStorage.removeItem("currentSongListId");
         } catch (error) {
             console.dir(error);
             console.error("Failed to log out: ", error.message);

@@ -1626,6 +1626,8 @@ function updateProgressPreview(fillPercent) {
 function loadCurrentSong() {
     const currentSong = currentSongList[currentIndex];
 
+    localStorage.setItem("currentIndex", currentIndex);
+
     // update Song info in player-left
     const imgSrc =
         currentSong.image_url ||
@@ -2004,6 +2006,19 @@ function openContextMenu(e, contextMenu) {
     contextMenu.classList.add("show");
 }
 
+function saveCurrentSongListConfig(
+    currentIndex,
+    currentSongList,
+    currentSongListId
+) {
+    localStorage.setItem("currentIndex", currentIndex);
+    localStorage.setItem("currentSongList", JSON.stringify(currentSongList));
+    localStorage.setItem(
+        "currentSongListId",
+        JSON.stringify(currentSongListId)
+    );
+}
+
 // handle play-btn-large click
 function handlePlayBtnClick() {
     const playBtnIcon = this.querySelector("i");
@@ -2015,6 +2030,12 @@ function handlePlayBtnClick() {
         currentIndex = 0;
         currentSongList = nextSongList;
         currentSongListId = nextSongListId;
+
+        saveCurrentSongListConfig(
+            currentIndex,
+            currentSongList,
+            currentSongListId
+        );
 
         if (isShuffled) {
             unplayedSongIndexes = createArray(currentSongList.length);
@@ -2060,6 +2081,8 @@ function handleSongListDblclick(e) {
 
     currentSongList = nextSongList;
     currentSongListId = nextSongListId;
+
+    saveCurrentSongListConfig(currentIndex, currentSongList, currentSongListId);
 
     if (isShuffled) {
         unplayedSongIndexes = createArray(currentSongList.length);
@@ -2135,6 +2158,12 @@ async function removeTrackFromPlaylist(playlistId, trackId) {
         // nếu playlist đang play (currentSongListId) là playlist đang bị xóa bài hát (playlistId/nextSongListId) -> thì phải gán lại currentSongList = nextSongList sau khi bị xóa bài hát
         if (currentSongListId === playlistId) {
             currentSongList = nextSongList;
+
+            saveCurrentSongListConfig(
+                currentIndex,
+                currentSongList,
+                currentSongListId
+            );
 
             if (isShuffled) {
                 unplayedSongIndexes = createArray(currentSongList.length);
@@ -2787,6 +2816,12 @@ async function handlePlaylistsContainerClick(e) {
         currentSongList = nextSongList;
         currentSongListId = nextSongListId;
 
+        saveCurrentSongListConfig(
+            currentIndex,
+            currentSongList,
+            currentSongListId
+        );
+
         if (!currentSongList.length) return;
 
         if (isShuffled) {
@@ -2825,6 +2860,12 @@ async function handleArtistsContainerClick(e) {
         currentIndex = 0;
         currentSongList = nextSongList;
         currentSongListId = nextSongListId;
+
+        saveCurrentSongListConfig(
+            currentIndex,
+            currentSongList,
+            currentSongListId
+        );
 
         if (!currentSongList.length) return;
 
@@ -2949,6 +2990,14 @@ document.addEventListener("DOMContentLoaded", async function () {
     // update volume
     const volumeValue = +localStorage.getItem("volumeValue");
     updateVolumeBar(volumeValue);
+
+    // load current song, songList from localStorage
+    currentIndex = +localStorage.getItem("currentIndex");
+    currentSongList = JSON.parse(localStorage.getItem("currentSongList"));
+    currentSongListId = JSON.parse(localStorage.getItem("currentSongListId"));
+    // doing
+    loadCurrentSong();
+    renderTrackList(currentSongList, currentSongListId);
 });
 
 /*

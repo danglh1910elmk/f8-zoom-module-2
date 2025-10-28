@@ -493,7 +493,7 @@ async function fetchFollowedArtists() {
 function renderSidebar(list) {
     if (!list.length) {
         libraryContentContainer.innerHTML = `<div class="library-item">
-                                                    <p>Your list is empty!</p>
+                                                    <p>Empty. Try searching again using a different keyword.</p>
                                                 </div>`;
         return;
     }
@@ -895,6 +895,9 @@ document.addEventListener("DOMContentLoaded", async (e) => {
     // =============================================
     const playlistContextMenu = $(".playlist-context-menu");
     const artistContextMenu = $(".artist-context-menu");
+    const editPlaylistOption = $(".edit-playlist");
+    const unfollowPlaylistOption = $(".unfollow-playlist");
+    const deletePlaylistOption = $(".delete-playlist");
 
     let contextMenuId; // lưu playlistId/artistId khi chuột phải vào playlist/artist trong sidebar
 
@@ -911,9 +914,35 @@ document.addEventListener("DOMContentLoaded", async (e) => {
         contextMenuId = id;
 
         if (type === "playlist") {
+            try {
+                const { is_owner } = await getPlaylistById(id);
+
+                if (is_owner) {
+                    // display edit option
+                    editPlaylistOption.classList.add("show");
+                    // display delete option
+                    deletePlaylistOption.classList.add("show");
+
+                    // hide Unfollow option
+                    unfollowPlaylistOption.classList.remove("show");
+                } else {
+                    // display Unfollow option
+                    unfollowPlaylistOption.classList.add("show");
+
+                    // hide edit option
+                    editPlaylistOption.classList.remove("show");
+                    // hide delete option
+                    deletePlaylistOption.classList.remove("show");
+                }
+            } catch (error) {
+                console.dir(error);
+            }
+
             // open playlist context menu
             openContextMenu(e, playlistContextMenu);
-        } else {
+        }
+        // type === 'artist'
+        else {
             // open artist context menu
             openContextMenu(e, artistContextMenu);
         }
@@ -932,8 +961,10 @@ document.addEventListener("DOMContentLoaded", async (e) => {
         const menuItem = e.target.closest(".menu-item");
         if (!menuItem) return;
 
-        if (menuItem.classList.contains("unfollow-playlist")) {
-            await handleUnfollowPlaylist(contextMenuId); // doing
+        if (menuItem.classList.contains("edit-playlist")) {
+            await handleEditPlaylist(contextMenuId);
+        } else if (menuItem.classList.contains("unfollow-playlist")) {
+            await handleUnfollowPlaylist(contextMenuId);
         } else if (menuItem.classList.contains("delete-playlist")) {
             await handleDeletePlaylist(contextMenuId);
         }
@@ -965,6 +996,17 @@ document.addEventListener("DOMContentLoaded", async (e) => {
 
     let sidebarSearchString;
 
+    async function processSidebarSearchQuery() {
+        sidebarSearchString = librarySearchInput.value.trim();
+
+        if (!sidebarSearchString) return;
+
+        const type = +localStorage.getItem("type");
+        const sortMode = localStorage.getItem("sortMode");
+        await renderSidebarSearchedResults(sidebarSearchString, type, sortMode);
+    }
+
+    // display search box
     searchLibraryBtn.addEventListener("click", () => {
         if (!isUserLoggedIn()) return;
 
@@ -975,15 +1017,16 @@ document.addEventListener("DOMContentLoaded", async (e) => {
     });
 
     librarySearchInput.addEventListener("keydown", async (e) => {
-        if (e.key !== "Enter") return;
+        if (e.key === "Enter") {
+            await processSidebarSearchQuery();
+        }
+    });
 
-        sidebarSearchString = librarySearchInput.value.trim();
+    let librarySearchInputTimeout;
+    librarySearchInput.addEventListener("input", () => {
+        clearTimeout(librarySearchInputTimeout);
 
-        if (!sidebarSearchString) return;
-
-        const type = +localStorage.getItem("type");
-        const sortMode = localStorage.getItem("sortMode");
-        await renderSidebarSearchedResults(sidebarSearchString, type, sortMode);
+        librarySearchInputTimeout = setTimeout(processSidebarSearchQuery, 200);
     });
 
     // close librarySearchInput when clicking outside
@@ -1027,17 +1070,26 @@ function isUserLoggedIn(toastMessage = null) {
     return true;
 }
 
+async function handleEditPlaylist(playlistId) {
+    if (!isUserLoggedIn("Log in to edit this playlist!")) return;
+
+    try {
+        const playlist = await getPlaylistById(playlistId);
+
+        // render playlist page
+        await handlePlaylistClick(playlist.id);
+
+        editPlaylistDetailsBtn.click();
+    } catch (error) {
+        console.dir(error);
+    }
+}
+
 async function handleFollowPlaylist(playlistId) {
     if (!isUserLoggedIn("Log in to follow this playlist!")) return;
 
     try {
         const playlist = await getPlaylistById(playlistId);
-        // không cho follow/unfollow playlist của mình (giống spotify)
-        if (playlist.is_owner) {
-            // show toast ?
-            console.error("Cannot follow your own playlist!");
-            return;
-        }
 
         const { message, is_following } = await httpRequest.post(
             `playlists/${playlistId}/follow`
@@ -1065,12 +1117,6 @@ async function handleFollowPlaylist(playlistId) {
 async function handleUnfollowPlaylist(playlistId) {
     try {
         const playlist = await getPlaylistById(playlistId);
-        // không cho follow/unfollow playlist của mình (giống spotify)
-        if (playlist.is_owner) {
-            // show toast ?
-            console.error("Cannot unfollow your own playlist!");
-            return;
-        }
 
         const { message, is_following } = await httpRequest.del(
             `playlists/${playlistId}/follow`
@@ -1095,7 +1141,61 @@ async function handleUnfollowPlaylist(playlistId) {
     }
 }
 
+const deleteConfirmModal = $(".delete-confirm-modal");
+const deleteConfirmModalDesc = $(".delete-confirm-modal .modal-desc");
+
 async function handleDeletePlaylist(playlistId) {
+    function hideModal() {
+        deleteConfirmModal.classList.remove("show");
+        deleteConfirmModal.removeEventListener(
+            "click",
+            handleDeleteConfirmModalClick
+        );
+    }
+
+    async function handleDeleteConfirmModalClick(e) {
+        // click cancel button
+        if (e.target.closest(".cancel-btn")) {
+            hideModal();
+        }
+        // click Delete button
+        else if (e.target.closest(".delete-btn")) {
+            try {
+                const { message } = await httpRequest.del(
+                    `playlists/${playlistId}`
+                );
+
+                // re-render sidebar
+                await reRenderSidebar();
+
+                // close modal
+                hideModal();
+
+                // nếu nằm trong 'view' thì quay về Home
+                if (nextSongListId === playlistId) {
+                    $(".go-home-btn").click();
+                }
+
+                // show toast
+                showToast(message, true);
+            } catch (error) {
+                console.dir(error);
+                console.error("Failed to delete playlist: ", error.message);
+
+                // show toast : error.response.error.message = "Permission denied: You can only delete your own playlists"
+                showToast(error.response.error.message, false);
+            }
+        }
+        // click modal body
+        else if (e.target.closest(".modal-container")) {
+            return;
+        }
+        // click modal overlay
+        else {
+            hideModal();
+        }
+    }
+
     try {
         const playlist = await getPlaylistById(playlistId);
         // prevent deleting default playlist
@@ -1106,25 +1206,17 @@ async function handleDeletePlaylist(playlistId) {
             return;
         }
 
-        const { message } = await httpRequest.del(`playlists/${playlistId}`);
+        // update modal description
+        deleteConfirmModalDesc.innerHTML = `This will delete <strong>${playlist.name}</strong> from
+                    <strong>Your Library.</strong>`;
 
-        // re-render sidebar
-        await reRenderSidebar();
-
-        // nếu nằm trong 'view' thì quay về Home
-        if (nextSongListId === playlistId) {
-            $(".go-home-btn").click();
-        }
-
-        // show toast
-        showToast(message, true);
+        // open confirm modal
+        deleteConfirmModal.classList.add("show");
     } catch (error) {
         console.dir(error);
-        console.error("Failed to delete playlist: ", error.message);
-
-        // show toast : error.response.error.message = "Permission denied: You can only delete your own playlists"
-        showToast(error.response.error.message, false);
     }
+
+    deleteConfirmModal.addEventListener("click", handleDeleteConfirmModalClick);
 }
 
 async function handleFollowArtist(artistId) {
@@ -1957,6 +2049,19 @@ document.addEventListener("mousemove", (e) => {
     }
 });
 
+volumeBar.addEventListener("wheel", (e) => {
+    let volumeValue = audioElement.volume;
+
+    if (e.deltaY > 0) {
+        volumeValue = Math.max(0, volumeValue - 0.05);
+    } else if (e.deltaY < 0) {
+        volumeValue = Math.min(1, volumeValue + 0.05);
+    }
+
+    updateVolumeBar(volumeValue);
+    localStorage.setItem("volumeValue", volumeValue);
+});
+
 // click volume button to mute
 $(".volume-btn").addEventListener("click", () => {
     if (audioElement.volume) {
@@ -2713,34 +2818,45 @@ function clearSearchResultModal() {
     artistSearchSection.classList.remove("show");
 }
 
+async function processSearchQuery() {
+    const searchString = searchInput.value.trim();
+
+    if (!searchString) return;
+
+    try {
+        const {
+            query,
+            results,
+            results: { tracks, playlists, artists, albums },
+            total_results,
+            pagination,
+        } = await httpRequest.get(
+            `search?q=${searchString}&type=all&limit=20&offset=0`
+        );
+
+        searchedTracks = tracks;
+
+        renderSearchResultModal(query, results, total_results);
+    } catch (error) {
+        console.dir(error);
+        console.error("Failed to search: ", error.message);
+
+        // show toast
+        showToast("Failed to search", false);
+    }
+}
+
 searchInput.addEventListener("keydown", async (e) => {
     if (e.key === "Enter") {
-        const searchString = searchInput.value.trim();
-
-        if (!searchString) return;
-
-        try {
-            const {
-                query,
-                results,
-                results: { tracks, playlists, artists, albums },
-                total_results,
-                pagination,
-            } = await httpRequest.get(
-                `search?q=${searchString}&type=all&limit=20&offset=0`
-            );
-
-            searchedTracks = tracks;
-
-            renderSearchResultModal(query, results, total_results);
-        } catch (error) {
-            console.dir(error);
-            console.error("Failed to search: ", error.message);
-
-            // show toast
-            showToast("Failed to search", false);
-        }
+        await processSearchQuery();
     }
+});
+
+let searchInputTimeout;
+searchInput.addEventListener("input", () => {
+    clearTimeout(searchInputTimeout);
+
+    searchInputTimeout = setTimeout(processSearchQuery, 200);
 });
 
 // close searchResultModal when clicking outside
@@ -3000,9 +3116,11 @@ document.addEventListener("DOMContentLoaded", async function () {
     currentIndex = +localStorage.getItem("currentIndex");
     currentSongList = JSON.parse(localStorage.getItem("currentSongList"));
     currentSongListId = JSON.parse(localStorage.getItem("currentSongListId"));
-    // doing
-    loadCurrentSong();
-    renderTrackList(currentSongList, currentSongListId);
+
+    if (currentSongList) {
+        loadCurrentSong();
+        renderTrackList(currentSongList, currentSongListId);
+    }
 });
 
 /*

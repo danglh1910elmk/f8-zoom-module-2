@@ -1343,6 +1343,48 @@ textarea.playlist-form-input {
     font-size: 12px;
 }
 
+/* delete playlist confirm modal */
+.delete-confirm-modal .modal-container {
+    max-width: 420px;
+    background: #fff;
+    padding: 32px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    color: #000;
+}
+
+.delete-confirm-modal .modal-title {
+    color: #000;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.delete-confirm-modal .modal-desc {
+    font-size: 14px;
+}
+
+.delete-confirm-modal .modal-row {
+    margin-top: 24px;
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-md);
+}
+
+.delete-confirm-modal .btn {
+    border-radius: 999px;
+    padding: 0;
+    font-size: 16px;
+    font-weight: 700;
+    height: 48px;
+}
+
+.delete-confirm-modal .delete-btn {
+    padding: 0 30px;
+    background: #1ed760;
+}
+
 /* User Menu */
 .user-menu {
     position: relative;
@@ -1633,11 +1675,6 @@ textarea.playlist-form-input {
 }
 
 .toast {
-    /* position: fixed;
-    z-index: 1000;
-    top: 12%;
-    right: 5%; */
-
     background: #666;
     color: var(--text-primary);
     width: 300px;
@@ -1677,8 +1714,8 @@ textarea.playlist-form-input {
 
     border-radius: 4px;
     padding: 4px;
-    min-width: 200px;
-    width: 250px;
+    min-width: 180px;
+    width: 200px;
     background: #282828;
     overflow-y: auto;
 
@@ -1716,6 +1753,34 @@ textarea.playlist-form-input {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+/* ===== playlist context menu ===== */
+.edit-playlist {
+    display: none;
+}
+.edit-playlist.show {
+    display: flex;
+}
+
+.unfollow-playlist {
+    display: none;
+}
+.unfollow-playlist.show {
+    display: flex;
+}
+
+.delete-playlist {
+    display: none;
+}
+.delete-playlist.show {
+    display: flex;
+}
+
+/* ===== track context menu ===== */
+.track-context-menu {
+    min-width: 200px;
+    width: 250px;
 }
 
 /* playlist select modal */

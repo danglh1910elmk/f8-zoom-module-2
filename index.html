@@ -1005,6 +1005,12 @@
         <!-- playlist contextmenu -->
         <div class="playlist-context-menu context-menu">
             <ul class="menu-list">
+                <li class="menu-item edit-playlist">
+                    <div class="icon-wrapper">
+                        <i class="fa-solid fa-pencil"></i>
+                    </div>
+                    <span>Edit details</span>
+                </li>
                 <li class="menu-item unfollow-playlist">
                     <div class="icon-wrapper">
                         <i class="fa-solid fa-xmark"></i>
@@ -1041,13 +1047,28 @@
                     </div>
                     <span>Add to playlist</span>
                 </li>
-                <li class="menu-item remove-from-playlist show">
+                <li class="menu-item remove-from-playlist">
                     <div class="icon-wrapper">
                         <i class="fa-solid fa-trash"></i>
                     </div>
                     <span>Remove from this playlist</span>
                 </li>
             </ul>
+        </div>
+
+        <!-- delete playlist confirm modal -->
+        <div class="delete-confirm-modal modal-overlay">
+            <div class="modal-container">
+                <h2 class="modal-title">Delete from Your Library?</h2>
+                <p class="modal-desc">
+                    This will delete <strong>My Playlist #7</strong> from
+                    <strong>Your Library.</strong>
+                </p>
+                <div class="modal-row">
+                    <button class="cancel-btn btn">Cancel</button>
+                    <button class="delete-btn btn">Delete</button>
+                </div>
+            </div>
         </div>
 
         <!-- Toast -->
